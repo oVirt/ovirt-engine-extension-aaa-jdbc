@@ -1,0 +1,12 @@
+lib/
+target/
+output/
+
+build.properties
+ovirt-engine-extension-aaa-jdbc.spec
+
+*.tar.gz
+
+*.iml
+.idea
+

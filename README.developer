@@ -1,0 +1,44 @@
+ovirt-engine-extension-aaa-jdbc -- DEVELOPER NOTES
+
+BUILD
+
+Prerequisites
+
+ - apache-commons-codec
+ - apache-commons-lang
+ - ovirt-engine-extensions-api
+ - postgresql-jdbc
+ - slf4j-api
+ - slf4j-log4j12
+
+Setup dependencies
+
+$ mkdir -p lib
+$ cp /usr/share/java/commons-codec.jar \
+	/usr/share/java/commons-lang.jar \
+	/usr/share/java/ovirt-engine/ovirt-engine-extensions-api.jar \
+	/usr/share/java/postgresql-jdbc.jar \
+	/usr/share/java/slf4j/slf4j-api.jar \
+	/usr/share/java/slf4j/slf4j-jdk14.jar \
+	lib
+
+Build and Install into devenv
+
+$ make clean install PREFIX="$HOME/ovirt-engine"
+
+DATABASE [postgresql]
+
+Please take a look at README.admin how to setup PostgreSQL for
+ovirt-engine-aaa-jdbc extension.
+
+TESTS
+
+Create database same as regular schema name it aaa_jdbc_test, also add the following
+file when you create the schema:
+
+    "dbscripts/test/populate-tables.sql"
+
+Execute tests.
+TODO: enable -D property to select a database.
+
+$ ant check.IntegrationTest

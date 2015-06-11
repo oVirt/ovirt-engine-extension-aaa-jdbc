@@ -1,0 +1,64 @@
+usage:
+ovirt-aaa-jdbc-tool
+    user
+        <command>
+            add
+            edit
+            delete
+            unlock
+            password-reset
+            show
+        <user-name>
+        --password=type:string, default: none:
+           pass - string is password, insecure mode
+           env - string is environment
+           file - string is file
+           interactive - acquire from console
+           none - equal to --flag=noPassword
+        --password-valid-to="yyyy-MM-dd HH:mm:ssZ", default now()
+        --account-valid-from="yyyy-MM-dd HH:mm:ssZ", default now()
+        --account-valid-to="yyyy-MM-dd HH:mm:ssZ", default infinite
+        --account-login-time=7 * 48 length string, default 1 ** 7 * 48
+        --attribute=<name>=<value>
+           displayName
+           email
+           description
+           firstName
+           lastName
+        --flag=[+|-]<flags>, default none
+           disabled
+           nopass
+        --new-name=<name>, new name to assign
+        --id=<string>, id to assign
+   group
+       <command>
+           add
+           edit
+           delete
+           show
+       <group-name>
+       --attribute=<name>=<value>
+           displayName
+           description
+   group-manage
+       <command>
+           useradd
+           userdel
+           groupadd
+           groupdel
+           show
+       <group-name>
+       --group=
+       --user=
+   query
+       --what=
+           user
+           group
+       --regexp=attribute=regexp
+       --regexp=attribute=regexp
+   settings
+       <command>
+           show
+           set
+       --attribute=, default all for show
+       --value=

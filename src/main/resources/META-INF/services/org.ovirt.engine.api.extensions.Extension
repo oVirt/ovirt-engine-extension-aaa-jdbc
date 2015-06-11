@@ -1,0 +1,2 @@
+org.ovirt.engine.extension.aaa.jdbc.binding.api.AuthnExtension
+org.ovirt.engine.extension.aaa.jdbc.binding.api.AuthzExtension

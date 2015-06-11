@@ -1,0 +1,96 @@
+package org.ovirt.engine.extension.aaa.jdbc.core.datasource;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.sql.DriverManager;
+import java.util.Properties;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+
+import org.apache.commons.lang.StringUtils;
+
+/**
+ * Read some static jdbc data configuration.
+ *
+ * If a JNDI name has been configured it will be used.
+ *
+ * Otherwise, a proxy is returned.
+ *
+ * The proxy always calls driver manager and used parameters to get a connection.
+ *
+ */
+public class DataSourceProvider {
+
+    private static final String JNDI = "config.datasource.jndi";
+
+    private static final String JDBC_DRIVER = "config.datasource.jdbcdriver";
+
+    private static final String JDBC_URL = "config.datasource.jdbcurl";
+
+    private static final String DATABASE_USER = "config.datasource.dbuser";
+
+    private static final String DATABASE_PASSWORD = "config.datasource.dbpassword";
+
+    private static DataSource dataSource;
+
+    public DataSourceProvider(Properties configuration) {
+        String datasourceJndi = configuration.getProperty(JNDI);
+        if (!StringUtils.isEmpty(datasourceJndi)) {
+            dataSource = getDataSourceFromJNDI(datasourceJndi);
+        } else {
+            dataSource = createDataSource(
+                    configuration.getProperty(JDBC_DRIVER),
+                    configuration.getProperty(JDBC_URL),
+                    configuration.getProperty(DATABASE_USER),
+                    configuration.getProperty(DATABASE_PASSWORD)
+            );
+        }
+    }
+
+    private DataSource createDataSource(
+            final String jdbcDriver,
+            final String jdbcUrl,
+            final String dbUser,
+            final String dbPassword) {
+        try {
+            Class.forName(jdbcDriver);
+        } catch (ClassNotFoundException exception) {
+            throw new IllegalArgumentException("Failed to load JDBC_DRIVER: " + jdbcDriver);
+        }
+        return (DataSource) Proxy.newProxyInstance(
+            Thread.currentThread().getContextClassLoader(),
+            new Class<?>[] { DataSource.class },
+            new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    if (method.getName().equals("toString")) {
+                        return "DataSource";
+                    }
+                    if (!method.getName().equals("getConnection")) {
+                        throw new UnsupportedOperationException(method.getName());
+                    }
+                    return DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+                }
+            }
+        );
+    }
+
+    private DataSource getDataSourceFromJNDI(String property) {
+
+        DataSource dataSource;
+        try {
+            InitialContext context = new InitialContext();
+            dataSource = (DataSource) context.lookup(property);
+        } catch (NamingException e) {
+            throw new IllegalArgumentException("Could not lookup datasource.", e);
+        }
+        return dataSource;
+    }
+
+    public DataSource provide() {
+        return dataSource;
+    }
+}

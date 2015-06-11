@@ -1,0 +1,75 @@
+%if 0%{?rhel}
+%if 0%{?rhel} < 7
+%global java_devel java7-devel
+%if 0%{?centos}
+%global slf4j slf4j
+%else
+%global slf4j slf4j-eap6
+%endif
+%else
+%global java_devel java-devel >= 1.7.0
+%global slf4j slf4j
+%endif
+%endif
+
+%if 0%{?fedora}
+%global java_devel java-devel >= 1.7.0
+%global slf4j slf4j
+%endif
+
+%global make_common_opts \\\
+	PREFIX=%{_prefix} \\\
+	SYSCONF_DIR=%{_sysconfdir} \\\
+	DATA_DIR=%{_datadir} \\\
+	PKG_DATA_DIR=%{_datadir}/%{name} \\\
+	%{nil}
+Name:		@PACKAGE_NAME@
+Version:	@RPM_VERSION@
+Release:	@RPM_RELEASE@%{?release_suffix}%{?dist}
+License:	ASL 2.0
+Summary:	oVirt Engine Local Users Extension
+Group:		Virtualization/Management
+URL:		http://www.ovirt.org
+BuildArch:	noarch
+Source:		http://resources.ovirt.org/pub/src/%{name}/%{name}-@PACKAGE_VERSION@.tar.gz
+
+BuildRequires: %{java_devel}
+BuildRequires: %{slf4j} >= 1.7
+BuildRequires: apache-commons-codec
+BuildRequires: apache-commons-lang
+BuildRequires: ant
+BuildRequires: jpackage-utils
+BuildRequires: ovirt-engine-extensions-api
+
+Requires: ovirt-engine >= 3.5
+
+%description
+Local JDBC user management for oVirt engine.
+
+%prep
+%setup -c -q
+
+%build
+cat > build.properties << __EOF__
+jar.commons-codec=$(build-classpath commons-codec)
+jar.commons-lang=$(build-classpath commons-lang)
+jar.ovirt-engine-extensions-api=$(build-classpath ovirt-engine/ovirt-engine-extensions-api)
+jar.jdbc=$(build-classpath postgresql-jdbc)
+jar.slf4j-api=$(build-classpath %{slf4j}/slf4j-api)
+package.display.name=%{name}-%{version}-%{release}
+
+__EOF__
+
+make %{make_common_opts} all
+
+%install
+rm -fr "%{buildroot}"
+make %{make_common_opts} install-no-build DESTDIR="%{buildroot}"
+
+%files
+%doc README.admin
+%doc README.developer
+%{_datadir}/%{name}/
+%{_sysconfdir}/ovirt-engine/engine.conf.d/50-%{name}.conf
+%{_bindir}/ovirt-aaa-jdbc-tool
+%changelog
