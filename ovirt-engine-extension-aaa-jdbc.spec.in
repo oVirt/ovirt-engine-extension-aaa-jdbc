@@ -41,7 +41,7 @@ BuildRequires: ant
 BuildRequires: jpackage-utils
 BuildRequires: ovirt-engine-extensions-api
 
-Requires: ovirt-engine >= 3.5
+Requires: ovirt-engine-extensions-api-impl >= 3.5
 
 %description
 Local JDBC user management for oVirt engine.
