@@ -1,5 +1,22 @@
+CREATE SEQUENCE schema_version_seq;
+
+CREATE TABLE schema_version (
+  id integer DEFAULT nextval('schema_version_seq'::regclass) NOT NULL,
+  version character varying(10) NOT NULL,
+  script character varying(255) NOT NULL,
+  checksum character varying(128),
+  installed_by character varying(63),
+  started_at timestamp without time zone DEFAULT now(),
+  ended_at timestamp without time zone,
+  state character varying(15) NOT NULL,
+  current boolean NOT NULL,
+  comment text DEFAULT ''::text,
+  PRIMARY KEY(id)
+);
+
+
 CREATE TABLE settings(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   uuid VARCHAR(512) UNIQUE NOT NULL,
   name VARCHAR(512) NOT NULL,
   description TEXT NOT NULL,
@@ -8,7 +25,7 @@ CREATE TABLE settings(
 );
 
 CREATE TABLE users(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   uuid VARCHAR(512) UNIQUE NOT NULL,
   name VARCHAR(512) UNIQUE NOT NULL,
   password VARCHAR(1024) NOT NULL,
@@ -26,7 +43,7 @@ CREATE TABLE users(
 );
 
 CREATE TABLE user_password_history(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   password VARCHAR(1024) NOT NULL,
   changed TIMESTAMP NOT NULL,
@@ -34,7 +51,7 @@ CREATE TABLE user_password_history(
 );
 
 CREATE TABLE user_attributes(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name VARCHAR(512) NOT NULL,
   value VARCHAR(1024) NOT NULL,
@@ -43,7 +60,7 @@ CREATE TABLE user_attributes(
 );
 
 CREATE TABLE failed_logins(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   minute_start TIMESTAMP NOT NULL,
   count INTEGER NOT NULL,
@@ -55,14 +72,14 @@ CREATE INDEX failed_logins_index
 ON failed_logins (minute_start);
 
 CREATE TABLE groups(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   name VARCHAR(512) UNIQUE NOT NULL,
   uuid VARCHAR(512) UNIQUE NOT NULL,
   PRIMARY KEY(id)
 );
 
 CREATE TABLE group_attributes(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
   name VARCHAR(512) NOT NULL,
   value VARCHAR(1024) NOT NULL,
@@ -71,7 +88,7 @@ CREATE TABLE group_attributes(
 );
 
 CREATE TABLE user_groups(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   in_group_id INTEGER NOT NULL REFERENCES groups(id),
   PRIMARY KEY(id),
@@ -79,7 +96,7 @@ CREATE TABLE user_groups(
 );
 
 CREATE TABLE group_groups(
-  id @AUTO_INCREMENT@,
+  id SERIAL,
   group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
   in_group_id INTEGER NOT NULL REFERENCES groups(id),
   PRIMARY KEY(id),

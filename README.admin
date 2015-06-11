@@ -34,10 +34,13 @@ following steps:
    Please replace DB_HOST, DB_NAME, DB_USER and DB_PASSWORD with
    real values:
 
-   cat \
-       /usr/share/ovirt-engine-extension-aaa-jdbc/dbscripts/create-tables-postgresql.sql \
-       /usr/share/ovirt-engine-extension-aaa-jdbc/dbscripts/populate-tables.sql | \
-       PGPASSWORD="DB_PASSWORD" psql -h DB_HOST -U DB_USER -d DB_NAME
+   PGPASSWORD="DB_PASSWORD" \
+       /usr/share/ovirt-engine-extension-aaa-jdbc/dbscripts/schema.sh \
+       -s DB_HOST \
+       -p DB_PORT \
+       -d DB_NAME \
+       -u DB_USER \
+       -c apply
 
 
 4. Setup AAA profile

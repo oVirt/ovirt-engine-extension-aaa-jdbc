@@ -33,10 +33,19 @@ ovirt-engine-aaa-jdbc extension.
 
 TESTS
 
-Create database same as regular schema name it aaa_jdbc_test, also add the following
-file when you create the schema:
+Create database same as regular schema, name it aaa_jdbc_test and also add
+the -T option when you create the schema:
 
-    "dbscripts/test/populate-tables.sql"
+   PGPASSWORD="DB_PASSWORD" \
+       ./packaging/dbscripts/schema.sh \
+       -s DB_HOST \
+       -p DB_PORT \
+       -d DB_NAME \
+       -u DB_USER \
+       -T \
+       -c apply
+
+Please replace DB_HOST, DB_NAME, DB_USER and DB_PASSWORD with real values.
 
 Execute tests.
 TODO: enable -D property to select a database.

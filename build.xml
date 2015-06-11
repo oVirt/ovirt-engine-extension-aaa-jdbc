@@ -67,34 +67,12 @@
 			</filterset>
 		</copy>
 
-		<delete dir="${build.output}/dbscripts/"/>
+		<delete dir="${build.output}/dbscripts"/>
 		<copy
-			todir="${build.output}/dbscripts/"
+			todir="${build.output}/dbscripts"
 			overwrite="true"
 		>
-			<fileset dir="dbscripts/scripts">
-				<exclude name="create-tables.sql.in" />
-			</fileset>
-		</copy>
-		<property file="dbscripts/vendors/postgresql/vendor.properties"/>
-		<copy
-			file="dbscripts/scripts/create-tables.sql.in"
-			tofile="${build.output}/dbscripts/create-tables-postgresql.sql"
-			overwrite="true"
-		>
-			<filterset>
-				<filter token="AUTO_INCREMENT" value="${db.vendor.auto_increment}"/>
-			</filterset>
-		</copy>
-		<property file="dbscripts/vendors/mysql/vendor.properties"/>
-		<copy
-			file="dbscripts/scripts/create-tables.sql.in"
-			tofile="${build.output}/dbscripts/create-tables-mysql.sql"
-			overwrite="true"
-		>
-			<filterset>
-				<filter token="AUTO_INCREMENT" value="${db.vendor.auto_increment}"/>
-			</filterset>
+			<fileset dir="packaging/dbscripts"/>
 		</copy>
 	</target>
 
@@ -227,15 +205,17 @@
 			todir="${dir.destdir}${dir.pkgdata}/dbscripts"
 			overwrite="true"
 		>
-			<fileset dir="${build.output}/dbscripts">
-				<exclude name="test/**" />
-			</fileset>
+			<fileset dir="${build.output}/dbscripts"/>
 		</copy>
 		<chmod
 			dir="${dir.destdir}${dir.pkgdata}"
 			perm="u=rwX,go=rX"
 			type="both"
 			includes="**"
+		/>
+		<chmod
+			file="${dir.destdir}${dir.pkgdata}/dbscripts/schema.sh"
+			perm="a+x"
 		/>
 
 		<copy
