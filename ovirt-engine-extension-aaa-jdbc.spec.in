@@ -40,6 +40,7 @@ BuildRequires: apache-commons-lang
 BuildRequires: ant
 BuildRequires: jpackage-utils
 BuildRequires: ovirt-engine-extensions-api
+BuildRequires: postgresql-jdbc
 
 Requires: ovirt-engine-extensions-api-impl >= 3.5
 
