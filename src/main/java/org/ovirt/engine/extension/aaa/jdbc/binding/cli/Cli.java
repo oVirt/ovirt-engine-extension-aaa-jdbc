@@ -1117,7 +1117,7 @@ public class Cli {
             );
         } catch (Throwable t) {
             if (context.get(ContextKeys.LOGGING_STARTED, Boolean.class, false)) {
-                LOG.error("Unexpected Exception invoking Cli.");
+                LOG.error("Unexpected Exception invoking Cli: {}", t.getMessage());
                 LOG.debug("exception", t);
             } else {
                 t.printStackTrace();
