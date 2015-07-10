@@ -1,6 +1,18 @@
 #!/bin/sh
 
-. "$(dirname "$(readlink -f "$0")")"/../../ovirt-engine/bin/engine-prolog.sh
+ENGINE_PROLOG="${ENGINE_PREFIX:-$(dirname $0)/..}/share/ovirt-engine/bin/engine-prolog.sh"
+if [ ! -f ${ENGINE_PROLOG} ]; then
+    echo \
+"Cannot locate engine-prolog.sh, please specify oVirt engine installation \
+prefix. For example:
+
+  ENGINE_PREFIX=\$HOME/ovirt-engine ovirt-aaa-jdbc-tool
+
+"
+    exit -1
+fi
+
+. "${ENGINE_PROLOG}"
 
 exec "${JAVA_HOME}/bin/java" \
 	-Djava.security.auth.login.config="${ENGINE_USR}/conf/jaas.conf" \
