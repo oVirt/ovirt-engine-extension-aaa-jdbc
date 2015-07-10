@@ -1018,6 +1018,10 @@ public class Cli {
                         addContextMessage(context, true, e.getMessage());
                         context.get(ContextKeys.THROWABLES, Collection.class).add(e);
                         context.put(ContextKeys.EXIT_STATUS, NOT_FOUND);
+                    } catch (Schema.EntityAlreadyExists e) {
+                        addContextMessage(context, true, e.getMessage());
+                        context.get(ContextKeys.THROWABLES, Collection.class).add(e);
+                        context.put(ContextKeys.EXIT_STATUS, ALREADY_EXISTS);
                     } catch (SQLException e) {
                         addContextMessage(context, true, e.getMessage());
                         context.get(ContextKeys.THROWABLES, Collection.class).add(e);

@@ -812,17 +812,21 @@ public class Schema {
         Connection conn = null;
         try {
             Integer id = userKeys.get(UserIdentifiers.USER_ID, Integer.class);
-            if (op != Sql.ModificationTypes.INSERT && id == null) {
+            if (id == null) {
                 id = new Sql.Query( // id can never change!
                     Formatter.format(
                         "SELECT id from users where name = '{}' ",
                         userKeys.get(UserIdentifiers.USERNAME, String.class)
                     )
                 ).asInteger(ds, "id");
-                if (id == null) {
-                    throw new EntityNotFoundException("user", userKeys.get(UserIdentifiers.USERNAME, String.class));
+                if(id == null && op != Sql.ModificationTypes.INSERT) {
+                    throw new EntityNotFoundException("User", userKeys.get(UserIdentifiers.USERNAME, String.class));
+                }
+                if(id != null && op == Sql.ModificationTypes.INSERT) {
+                    throw new EntityAlreadyExists("User", userKeys.get(UserIdentifiers.USERNAME, String.class));
                 }
             }
+
             /**
              *  note: setX() and where() are ignored for deletes and insert accordingly.
              *  @see org.ovirt.engine.extension.aaa.jdbc.core.datasource.Sql.Template
@@ -934,18 +938,19 @@ public class Schema {
          */
         Connection conn = null;
         try {
-            Integer id = null;
-            if (op != Sql.ModificationTypes.INSERT) {
-                id = new Sql.Query( // id can never change!
-                    Formatter.format(
-                        "SELECT id from groups where name = '{}' ",
-                        groupKeys.get(GroupIdentifiers.NAME, String.class)
-                    )
-                ).asInteger(ds, "id");
-                if (id == null) {
-                    throw new EntityNotFoundException("Group", groupKeys.get(GroupIdentifiers.NAME, String.class));
-                }
+            Integer id = new Sql.Query( // id can never change!
+                Formatter.format(
+                    "SELECT id from groups where name = '{}' ",
+                    groupKeys.get(GroupIdentifiers.NAME, String.class)
+                )
+            ).asInteger(ds, "id");
+            if (id == null && op != Sql.ModificationTypes.INSERT) {
+                throw new EntityNotFoundException("Group", groupKeys.get(GroupIdentifiers.NAME, String.class));
             }
+            if(id != null && op == Sql.ModificationTypes.INSERT) {
+                throw new EntityAlreadyExists("Group", groupKeys.get(GroupIdentifiers.NAME, String.class));
+            }
+
 
             Sql.Template group = new Sql.Template(op, "groups");
             if (groupKeys.containsKey(GroupKeys.UUID)) {
@@ -1144,6 +1149,12 @@ public class Schema {
     public static class EntityNotFoundException extends SQLException {
         public EntityNotFoundException(String what, String who) {
             super(new StringBuilder(what).append(" ").append(who).append(" ").append("not found").toString());
+        }
+    }
+
+    public static class EntityAlreadyExists extends SQLException {
+        public EntityAlreadyExists(String what, String who) {
+            super(new StringBuilder(what).append(" ").append(who).append(" ").append("already exists").toString());
         }
     }
 }
