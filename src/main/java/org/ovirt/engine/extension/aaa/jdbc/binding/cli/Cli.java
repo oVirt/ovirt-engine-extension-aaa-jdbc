@@ -51,6 +51,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Cli {
+
+    private static final List<String> SENSISTIVE_DATA = new ArrayList<>();
+    static {
+        SENSISTIVE_DATA.add("config.datasource.dbpassword");
+    }
+
     /**
      * Commands are nested. example: "PROGRAM_NAME user add mike" will invoke:
      * root, root.user and root.user.add.
@@ -1142,7 +1148,11 @@ public class Cli {
             p.load(reader);
             LOG.trace("read properties from {}:", filename);
             for(Map.Entry<Object, Object> e: p.entrySet()) {
-                LOG.trace("{}=>{}", e.getKey(), e.getValue());
+                LOG.trace(
+                    "{}=>{}",
+                    e.getKey(),
+                    SENSISTIVE_DATA.contains(e.getKey()) ? "****" : e.getValue()
+                );
             }
             return p;
         } catch (Exception e) {
