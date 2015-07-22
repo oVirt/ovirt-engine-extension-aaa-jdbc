@@ -125,6 +125,7 @@ public class Schema {
         public static final ExtKey VALID_TO = new ExtKey("CATALOG_VALID_TO", Long.class, "5a7514b0-c670-46cf-8822-c0aedd8ccce8");
         public static final ExtKey LOGIN_ALLOWED = new ExtKey("CATALOG_LOGIN_ALLOWED", String.class, "1e932817-f863-4e49-bb44-a823be9ef4fe");
         public static final ExtKey NOPASS = new ExtKey("CATALOG_NOPASSWD", Boolean.class, "dc85f1d8-0933-4f15-b037-ef4007229436");
+        public static final ExtKey FORCE_PASSWORD = new ExtKey("CATALOG_FORCE_PASSWORD", Boolean.class, "9b187ad5-b403-4412-bf68-debc7fcc17a6");
         public static final ExtKey DISABLED = new ExtKey("CATALOG_DISABLED", Boolean.class, "7a5d77c6-f831-400b-bc8e-b9d8ea286408");
         /** unlock_time = value,  consecutive_failures = 0 */
         public static final ExtKey UNLOCK_TIME = new ExtKey("CATALOG_UNLOCK_TIME", Long.class, "7b1042a6-35ea-4108-8cc4-2ed142ba002f");

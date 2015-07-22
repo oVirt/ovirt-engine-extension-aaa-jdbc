@@ -443,6 +443,7 @@ public class Cli {
                     try {
                         String newPass = null;
                         boolean nopass;
+                        boolean forcePassword = false;
                         context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.UPDATE);
                         if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
                             putUserResetPassParams(context, args);
@@ -456,6 +457,8 @@ public class Cli {
                                 addContextMessage(context, true, "Empty password not allowed");
                                 context.put(ContextKeys.EXIT_STATUS, GENERAL_ERROR);
                             }
+                            forcePassword = context.get(Schema.InvokeKeys.ENTITY_KEYS, ExtMap.class)
+                                .get(Schema.UserKeys.FORCE_PASSWORD);
                         }
                         Schema.User user = null;
                         if (!context.containsKey(ContextKeys.EXIT_STATUS)) { // need to fetch user for pass history
@@ -468,7 +471,10 @@ public class Cli {
                                 ));
                             }
                         }
-                        if (!context.containsKey(ContextKeys.EXIT_STATUS) && !StringUtils.isEmpty(newPass)) {
+                        if (!context.containsKey(ContextKeys.EXIT_STATUS) &&
+                            !StringUtils.isEmpty(newPass) &&
+                            !forcePassword
+                        ) {
                             // test pass history & complexity
                             Authentication authentication =
                                 new Authentication(
@@ -1373,6 +1379,10 @@ public class Cli {
                 args.get("password-valid-to") != null ?
                     DateUtils.fromISO((String) args.get("password-valid-to")) :
                     null
+            )
+            .mput(
+                Schema.UserKeys.FORCE_PASSWORD,
+                args.get("force")
             );
             context.mput(
                 Schema.InvokeKeys.ENTITY_KEYS,
