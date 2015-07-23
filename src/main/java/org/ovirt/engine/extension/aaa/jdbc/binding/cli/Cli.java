@@ -445,8 +445,8 @@ public class Cli {
                         boolean nopass;
                         boolean forcePassword = false;
                         context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.UPDATE);
+                        putUserResetPassParams(context, args);
                         if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
-                            putUserResetPassParams(context, args);
                             newPass =
                                 context.get(Schema.InvokeKeys.ENTITY_KEYS, ExtMap.class)
                                 .get(Schema.UserKeys.PASSWORD, String.class);
