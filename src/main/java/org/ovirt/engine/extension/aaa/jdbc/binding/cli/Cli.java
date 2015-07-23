@@ -190,6 +190,8 @@ public class Cli {
 
         private static final ExtKey SEARCH_FILTER = new ExtKey("AAA_JDBC_CLI_SEARCH_FILTER", String.class, "2bbd200f-4362-436b-840f-dafe7c968e1e");
         private static final ExtKey SEARCH_RESULT = new ExtKey("AAA_JDBC_CLI_SEARCH_RESULT", Collection/*<ExtMap>*/.class, "b750f37e-fae5-4126-9516-8a62d528eb05");
+
+        private static final ExtKey SHOW_TEMPLATE = new ExtKey("AAA_JDBC_CLI_SHOW_TEMPLATE", String.class, "32f09d46-aa79-474b-99b6-a8e90716d1b5");
     }
 
     /** Exit Statuses */
@@ -532,6 +534,15 @@ public class Cli {
 
                 @Override
                 public void invoke(ExtMap context, Map<String, Object> args) {
+                    if (args.containsKey("attribute")) {
+                        context.put(
+                            ContextKeys.SHOW_TEMPLATE,
+                            String.format(
+                                "user-%s",
+                                args.get("attribute")
+                            )
+                        );
+                    }
                     context.put(
                         ContextKeys.SEARCH_FILTER,
                         Formatter.format("{} = '{}'",
@@ -1073,6 +1084,11 @@ public class Cli {
                 @Override
                 public void invoke(ExtMap context, Map<String, Object> args) {
                     Properties templates = loadPropertiesFromJar("entity-templates.properties");
+                    String providedTemplate = null;
+                    if (context.containsKey(ContextKeys.SHOW_TEMPLATE)) {
+                        providedTemplate = templates.get(context.get(ContextKeys.SHOW_TEMPLATE)).toString();
+                    }
+
                     @SuppressWarnings("unchecked")
                     Collection<ExtMap> results = context.get(
                         ContextKeys.SEARCH_RESULT,
@@ -1082,9 +1098,13 @@ public class Cli {
 
                     for (ExtMap result : results) {
                         String out =
-                            result.containsKey(Authz.PrincipalRecord.ID) ?
-                            templates.get("user").toString() :
-                            templates.get("group").toString();
+                            providedTemplate == null ?
+                                (
+                                    result.containsKey(Authz.PrincipalRecord.ID) ?
+                                    templates.get("user").toString() :
+                                    templates.get("group").toString()
+                                ) :
+                                providedTemplate;
                         for (Map.Entry<ExtKey, Object> entry : result.entrySet()) {
                             out = out.replaceAll(
                                 "@" + entry.getKey().getUuid().getUuid().toString() + "@",
