@@ -28,7 +28,7 @@ import org.apache.commons.lang.StringUtils;
  *  <li>mandatory - true/false declares if argument have to be specified or not (default: false)</li>
  *  <li>type - one of:
  *  <ul>
- *    <li>has_argument - argument requires value</li>
+ *    <li>required_argument - argument requires value</li>
  *    <li>optional_argument - argument could have value</li>
  *    <li>no_argument - argument doesn't have value (default)</li>
 *   </ul>
@@ -99,7 +99,7 @@ import org.apache.commons.lang.StringUtils;
  *   add.arg.message.name = message
  *   add.arg.message.help = Message to be stored
  *   add.arg.message.mandatory = true
- *   add.arg.message.type = has_argument
+ *   add.arg.message.type = required_argument
  *   add.arg.index.name = index
  *   add.arg.index.help = Index where message should be inserted
  *   add.arg.index.value = 0
@@ -169,6 +169,11 @@ public class ArgumentsParser {
      * List of errors which was found during pasring
      */
     private List<Throwable> errors;
+
+    /**
+     * Map of predefined substitutions which should be replaced in usage.
+     */
+    private Map<String, String> substitutions = new HashMap<>();
 
     /**
      * Inititilize ArgumentsParser attributes. Parser properties file and create argument map of it.
@@ -246,7 +251,7 @@ public class ArgumentsParser {
                     value == null &&
                     (
                         argument.getType() == Argument.Type.OPTIONAL_ARGUMENT ||
-                        argument.getType() == Argument.Type.HAS_ARGUMENT
+                        argument.getType() == Argument.Type.REQUIRED_ARGUMENT
                     )
                 ) {
                     if(args.size() > 0) {
@@ -258,7 +263,7 @@ public class ArgumentsParser {
                         }
                     }
                 }
-                if (argument.getType() == Argument.Type.HAS_ARGUMENT && value == null) {
+                if (argument.getType() == Argument.Type.REQUIRED_ARGUMENT && value == null) {
                     errors.add(
                         new IllegalArgumentException(
                             String.format("Value is required, but missing for argument '%1$s'", key)
@@ -271,11 +276,11 @@ public class ArgumentsParser {
                 Object convertedValue = null;
                 if (value != null) {
                     Matcher m = argument.getMatcher().matcher(value);
-                    if (!m.find()) {
+                    if (!m.matches()) {
                         errors.add(
                             new IllegalArgumentException(
                                 String.format(
-                                    "Pattern for argument '%1$s' does not match, pattern is '%2$s', value is '%3$s", key, m.pattern(), value
+                                    "Pattern for argument '%1$s' does not match, pattern is '%2$s', value is '%3$s'", key, m.pattern(), value
                                 )
                             )
                         );
@@ -319,33 +324,46 @@ public class ArgumentsParser {
      */
     public String getUsage() {
         StringBuilder help = new StringBuilder(String.format("Options:%n"));
+
         for(String arg : getPrefixArguments()) {
             Argument argument = this.arguments.get(arg);
             help.append(
-                String.format(
-                    "  --%s%n" +
-                        "    %s%n" +
-                        "%n",
-                    arg + (argument.getType() != Argument.Type.NO_ARGUMENT ? "=[" + argument.getMetavar() + "]" : ""),
-                    argument.getHelp()
-                )
+                    String.format(
+                            "  --%s%n" +
+                                    "    %s%n" +
+                                    "%n",
+                            arg + (argument.getType() != Argument.Type.NO_ARGUMENT ? "=[" + argument.getMetavar() + "]" : ""),
+                            argument.getHelp()
+                                    .replace("@CLI_PRM_DEFAULT@", StringUtils.defaultString(argument.getDefaultValue()))
+                                    .replace("@CLI_PRM_PATTERN@", argument.getMatcher().pattern())
+                    )
             );
         }
-        return String.format("%1$s%n%2$s%n%n%3$s%4$s%n",
-            properties.getProperty(
-                prefix + ".help.usage",
-                (String)defaultProperties.get("help.usage")
-            ),
-            properties.getProperty(
-                prefix + ".help.header",
-                (String) defaultProperties.get("help.header")
-            ),
-            help.toString(),
-            properties.getProperty(
-                prefix + ".help.footer",
-                (String) defaultProperties.get("help.footer")
-            )
+        return doSubstitutions(
+                String.format("%1$s%n%2$s%n%n%3$s%4$s%n",
+                        properties.getProperty(
+                                prefix + ".help.usage",
+                                (String) defaultProperties.get("help.usage")
+                        ),
+                        properties.getProperty(
+                                prefix + ".help.header",
+                                (String) defaultProperties.get("help.header")
+                        ),
+                        help.toString(),
+                        properties.getProperty(
+                                prefix + ".help.footer",
+                                (String) defaultProperties.get("help.footer")
+                        )
+                )
         );
+    }
+
+    /**
+     * Return all registered substitutions
+     * @return registered substitutions
+     */
+    public Map<String, String> getSubstitutions() {
+        return substitutions;
     }
 
     /**
@@ -359,7 +377,10 @@ public class ArgumentsParser {
                 putValue(
                     argMap,
                     arg,
-                    StringValueConverter.getObjectValueByString(arg.getValueType(), arg.getDefaultValue())
+                    StringValueConverter.getObjectValueByString(
+                        arg.getValueType(),
+                        doSubstitutions(arg.getDefaultValue())
+                    )
                 );
             }
         }
@@ -383,6 +404,18 @@ public class ArgumentsParser {
             }
             c.add(value);
         }
+    }
+
+    /**
+     * Substitute entries in string.
+     */
+    private String doSubstitutions(String s) {
+        if (s != null) {
+            for (Map.Entry<String, String> substitution : substitutions.entrySet()) {
+                s = s.replaceAll(substitution.getKey(), substitution.getValue());
+            }
+        }
+        return s;
     }
 
     /**
