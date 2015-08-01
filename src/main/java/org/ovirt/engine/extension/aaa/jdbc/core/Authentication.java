@@ -11,14 +11,12 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.ovirt.engine.api.extensions.ExtMap;
 import org.ovirt.engine.api.extensions.aaa.Authn;
 import org.ovirt.engine.extension.aaa.jdbc.DateUtils;
-import org.ovirt.engine.extension.aaa.jdbc.Formatter;
 import org.ovirt.engine.extension.aaa.jdbc.Global;
 import org.ovirt.engine.extension.aaa.jdbc.core.datasource.Sql;
 import org.slf4j.Logger;
@@ -177,20 +175,6 @@ public class Authentication implements Observer {
     ) throws GeneralSecurityException, SQLException {
         AuthResponse response = null;
         Schema.User user = null;
-
-        if (!Global.ATTRIBUTE_PATTERN.matcher(subject).matches()) {
-            response =
-                AuthResponse.negative(
-                    Authn.AuthResult.GENERAL_ERROR,
-                    null,
-                    Formatter.format(
-                        "principal does not match pattern. principal: {} pattern: {}",
-                        subject,
-                        Global.ATTRIBUTE_PATTERN
-                    )
-
-                 );
-        }
 
         if (response == null) {
             user = getUser(subject);

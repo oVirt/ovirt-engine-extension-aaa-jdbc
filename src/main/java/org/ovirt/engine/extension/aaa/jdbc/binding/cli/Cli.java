@@ -333,19 +333,6 @@ public class Cli {
                     context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.INSERT);
                     putUserAddKeys(context, args);
                     String name = context.get(ContextKeys.POSITIONAL);
-                    if (
-                        !context.containsKey(ContextKeys.EXIT_STATUS) &&
-                        !Global.ATTRIBUTE_PATTERN.matcher(name).matches()
-                    ) {
-                        context.put(ContextKeys.EXIT_STATUS, ARGUMENT_PARSING_ERROR);
-                        addContextMessage(context, true,
-                            Formatter.format(
-                                "entity name does not match pattern. name: {} pattern: {}.",
-                                name,
-                                Global.ATTRIBUTE_PATTERN.pattern()
-                            )
-                        );
-                    }
                     if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
                         commands.get("_schema-modify").invoke(context);
                     }
@@ -545,9 +532,9 @@ public class Cli {
                     }
                     context.put(
                         ContextKeys.SEARCH_FILTER,
-                        Formatter.format("{} = '{}'",
+                        Formatter.format("{} = {}",
                             Schema.SEARCH_KEYS.get(Authz.PrincipalRecord.NAME),
-                            context.get(ContextKeys.POSITIONAL, String.class)
+                            Formatter.escapeString(context.get(ContextKeys.POSITIONAL, String.class))
                         )
                     );
                     context.mput(Global.InvokeKeys.SEARCH_CONTEXT,
@@ -678,8 +665,8 @@ public class Cli {
                     context.put(
                         ContextKeys.SEARCH_FILTER,
                         Formatter.format(
-                            "{} = '{}'",
-                            Schema.SEARCH_KEYS.get(Authz.GroupRecord.NAME),
+                            "{} = {}",
+                            Formatter.escapeString(Schema.SEARCH_KEYS.get(Authz.GroupRecord.NAME)),
                             context.get(ContextKeys.POSITIONAL, String.class)
                         )
                     );
@@ -938,7 +925,7 @@ public class Cli {
                                 )
                             )
                         ).append(" ").append(Schema.OPERATORS.get(Schema.AuthzInternal.LIKE)).append(" ")
-                        .append("'").append(val).append("'").append(" AND ");
+                        .append(Formatter.escapeString(val)).append(" AND ");
                     }
                     filter.setLength(filter.length() - 5);
                     context.mput(

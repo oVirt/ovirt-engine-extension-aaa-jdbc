@@ -1,17 +1,11 @@
 package org.ovirt.engine.extension.aaa.jdbc;
 
-import java.util.regex.Pattern;
-
 import org.ovirt.engine.api.extensions.ExtKey;
 import org.ovirt.engine.api.extensions.ExtMap;
 
 public class Global {
     public static final int SETTINGS_SPECIAL = -1;
     public static final String NAMESPACE = "*";
-
-    /** pattern to check user/group names and attributes against in both cli and api. */
-    public static Pattern ATTRIBUTE_PATTERN = Pattern.compile("[\\p{Alnum}\\-\\s_]+");
-    public static Pattern SEARCH_PATTERN = Pattern.compile("[\\p{Alnum}\\-\\s_*]+");
 
     public static class SearchContext {
         /** can be principal or group */

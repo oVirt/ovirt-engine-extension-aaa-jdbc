@@ -17,6 +17,7 @@
 
 package org.ovirt.engine.extension.aaa.jdbc;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 public class Formatter {
@@ -31,5 +32,26 @@ public class Formatter {
 
     public static String format(String messagePattern, Object... args) {
         return MessageFormatter.arrayFormat(messagePattern, args).getMessage();
+    }
+
+    /**
+     * Escapes string value using PostreSQL dollar quoting
+     */
+    public static String escapeString(String value) {
+        // use dollar-quoted string values to prevent SQL injection
+        String dollarQuote = RandomStringUtils.randomAlphabetic(5);
+        return String.format(
+            "$%s$%s$%s$",
+            dollarQuote,
+            value,
+            dollarQuote
+        );
+    }
+
+    /**
+     * Converts object to string and escapes value using PostgreSQL dollar quoting
+     */
+    public static String escapeString(Object value) {
+        return value == null ? null : escapeString(value.toString());
     }
 }

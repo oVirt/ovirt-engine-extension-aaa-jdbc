@@ -794,11 +794,12 @@ public class Schema {
         for (Map.Entry<ExtKey, Object> entry: settingKeys.entrySet()) {
             updates.add(
                 Formatter.format(
-                    "UPDATE settings SET value = '{}' WHERE uuid = '{}'",
-                    entry.getValue(),
-                    entry.getKey()
+                    "UPDATE settings SET value = {} WHERE uuid = {}",
+                    Formatter.escapeString(entry.getValue()),
+                    Formatter.escapeString(entry.getKey()
                         .getUuid()
                         .getUuid()
+                    )
                 )
             );
         }
@@ -816,8 +817,8 @@ public class Schema {
             if (id == null) {
                 id = new Sql.Query( // id can never change!
                     Formatter.format(
-                        "SELECT id from users where name = '{}' ",
-                        userKeys.get(UserIdentifiers.USERNAME, String.class)
+                        "SELECT id from users where name = {} ",
+                        Formatter.escapeString(userKeys.get(UserIdentifiers.USERNAME, String.class))
                     )
                 ).asInteger(ds, "id");
                 if(id == null && op != Sql.ModificationTypes.INSERT) {
@@ -941,8 +942,8 @@ public class Schema {
         try {
             Integer id = new Sql.Query( // id can never change!
                 Formatter.format(
-                    "SELECT id from groups where name = '{}' ",
-                    groupKeys.get(GroupIdentifiers.NAME, String.class)
+                    "SELECT id from groups where name = {} ",
+                    Formatter.escapeString(groupKeys.get(GroupIdentifiers.NAME, String.class))
                 )
             ).asInteger(ds, "id");
             if (id == null && op != Sql.ModificationTypes.INSERT) {
@@ -968,8 +969,8 @@ public class Schema {
             ExtMap ctx = new Sql.Modification( // execute "groups" statement
                 group.where(
                     Formatter.format(
-                        "name = '{}'",
-                        groupKeys.get(GroupIdentifiers.NAME, String.class)
+                        "name = {}",
+                        Formatter.escapeString(groupKeys.get(GroupIdentifiers.NAME, String.class))
                     )
                 ).asSql()
             ).execute(conn, false);
@@ -1014,7 +1015,9 @@ public class Schema {
     ) throws SQLException {
         String memberCol = principal ? "user_id" : "group_id";
         Integer groupId = new Sql.Query( // id's can never change
-            Formatter.format("SELECT id from groups where name = '{}'", groupName)
+            Formatter.format(
+                "SELECT id from groups where name = {}",
+                Formatter.escapeString(groupName))
         ).asInteger(conn, "id");
         if (groupId == null) {
             throw new EntityNotFoundException("group",  groupName);
@@ -1051,8 +1054,8 @@ public class Schema {
         } else if (input.get(UserIdentifiers.USERNAME) != null) {
             cond =
                 Formatter.format(
-                    "name = '{}'",
-                    input.get(UserIdentifiers.USERNAME, String.class)
+                    "name = {}",
+                    Formatter.escapeString(input.get(UserIdentifiers.USERNAME, String.class))
                 );
         } else {
             throw new RuntimeException("No user Identifier provided");
@@ -1115,10 +1118,10 @@ public class Schema {
                     .setString("value", attribute.get(SharedKeys.ATTRIBUTE_VALUE, String.class))
                     .where(
                         Formatter.format(
-                            "{} = {} AND name = '{}'",
+                            "{} = {} AND name = {}",
                             user ? "user_id" : "group_id",
                             id,
-                            attribute.get(SharedKeys.ATTRIBUTE_NAME, String.class)
+                            Formatter.escapeString(attribute.get(SharedKeys.ATTRIBUTE_NAME, String.class))
                         )
                     ).asSql()
                 ).execute(conn, false);
@@ -1138,11 +1141,11 @@ public class Schema {
     private static boolean hasAttribute(int id, Connection conn, ExtMap attribute, boolean user) throws SQLException {
         return new Sql.Query(
             Formatter.format(
-                "SELECT value FROM {} WHERE {} = {} and name = '{}'",
+                "SELECT value FROM {} WHERE {} = {} and name = {}",
                 user ? "user_attributes" : "group_attributes",
                 user ? "user_id" : "group_id",
                 id,
-                attribute.get(SharedKeys.ATTRIBUTE_NAME, String.class)
+                Formatter.escapeString(attribute.get(SharedKeys.ATTRIBUTE_NAME, String.class))
             )
         ).asString(conn, "value") != null;
     }

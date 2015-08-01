@@ -139,12 +139,14 @@ public class AuthzExtension implements Extension {
         int flags = input.get(Authz.InvokeKeys.QUERY_FLAGS, Integer.class, 0);
         Collection<ExtMap> principals = authorization.getResults(
             Formatter.format(
-                "{} = '{}'",
+                "{} = {}",
                 Schema.SEARCH_KEYS.get(Authz.PrincipalRecord.NAME),
-                input.containsKey(Authz.InvokeKeys.PRINCIPAL) ?
-                input.get(Authz.InvokeKeys.PRINCIPAL, String.class) :
-                input.get(Authn.InvokeKeys.AUTH_RECORD, ExtMap.class)
-                .get(Authn.AuthRecord.PRINCIPAL, String.class)
+                Formatter.escapeString(
+                    input.containsKey(Authz.InvokeKeys.PRINCIPAL) ?
+                        input.get(Authz.InvokeKeys.PRINCIPAL, String.class) :
+                        input.get(Authn.InvokeKeys.AUTH_RECORD, ExtMap.class)
+                        .get(Authn.AuthRecord.PRINCIPAL, String.class)
+                )
             ),
             new ExtMap().mput(
                 Global.SearchContext.IS_PRINCIPAL,
@@ -233,16 +235,6 @@ public class AuthzExtension implements Extension {
         ){ // field filter
             String val = filter.get(key, String.class);
 
-            if (!Global.SEARCH_PATTERN.matcher(val).matches()) {
-                throw new IllegalArgumentException(
-                    Formatter.format(
-                        "attribute value does not match pattern attribute name: {}, value: {} pattern: {}",
-                        key.getUuid().getName(),
-                        val,
-                        Global.SEARCH_PATTERN
-                    )
-                );
-            }
             if (
                 opCode == QueryFilterOperator.EQ &&
                 val.endsWith("*")
@@ -252,10 +244,10 @@ public class AuthzExtension implements Extension {
             }
             sb.append(
                 Formatter.format(
-                    "({} {} '{}' {})",
+                    "({} {} {} {})",
                     Schema.SEARCH_KEYS.get(key),
                     Schema.OPERATORS.get(opCode),
-                    val,
+                    Formatter.escapeString(val),
                     orNull ?
                     Formatter.format(
                         " OR {} is null ",

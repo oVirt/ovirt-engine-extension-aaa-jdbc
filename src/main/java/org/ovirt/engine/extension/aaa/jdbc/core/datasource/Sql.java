@@ -32,6 +32,7 @@ import javax.sql.DataSource;
 import org.apache.commons.lang.StringUtils;
 import org.ovirt.engine.api.extensions.ExtKey;
 import org.ovirt.engine.api.extensions.ExtMap;
+import org.ovirt.engine.extension.aaa.jdbc.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -64,7 +65,6 @@ public class Sql {
         private final List<String> columns = new ArrayList<>();
         private final List<String> values = new ArrayList<>();
         private String where = null;
-
 
         public Template(int op, String table) {
             this.op = op;
@@ -107,7 +107,10 @@ public class Sql {
          */
         public Template setString(String column, String value) {
             if (value != null) {
-                setRaw(column, "'" + value + "'");
+                setRaw(
+                    column,
+                    Formatter.escapeString(value)
+                );
             }
             return this;
         }
