@@ -834,7 +834,7 @@ public class Schema {
              */
             Sql.Template users = new Sql.Template(op, "users");
             if (userKeys.containsKey(UserKeys.UUID)) {
-                users.setString("uuid", UUID.fromString(userKeys.get(UserKeys.UUID, String.class))
+                users.setString("uuid", userKeys.get(UserKeys.UUID, String.class)
                     .toString());
             } else if (op == Sql.ModificationTypes.INSERT) {
                 users.setString("uuid", UUID.randomUUID().toString());
@@ -955,7 +955,7 @@ public class Schema {
 
             Sql.Template group = new Sql.Template(op, "groups");
             if (groupKeys.containsKey(GroupKeys.UUID)) {
-                group.setString("uuid", UUID.fromString(groupKeys.get(GroupKeys.UUID, String.class)).toString());
+                group.setString("uuid", groupKeys.get(GroupKeys.UUID, String.class));
             } else if (op == Sql.ModificationTypes.INSERT) {
                 group.setString("uuid", UUID.randomUUID().toString());
             }
