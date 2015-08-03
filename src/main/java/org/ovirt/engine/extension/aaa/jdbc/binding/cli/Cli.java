@@ -164,7 +164,7 @@ public class Cli {
                             System.getProperty("org.ovirt.engine.aaa.jdbc.programName")
                         ).replaceAll(
                             "@MODULE_LIST@",
-                            StringUtils.join(this.getSubModules(), "\n\t") + "\n\thelp"
+                            StringUtils.join(this.getSubModules(), "\n  ") + "\n  help"
                         )
                     );
                     context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
