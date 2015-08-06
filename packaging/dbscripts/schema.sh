@@ -20,6 +20,7 @@ Usage: $0 [options]
     -p PORT       - The database port for the database        (def. ${DBFUNC_DB_PORT})
     -u USER       - The username for the database             (def. ${DBFUNC_DB_USER})
     -d DATABASE   - The database name                         (def. ${DBFUNC_DB_DATABASE})
+    -e SCHEMA     - The database schema name                  (def. ${DBFUNC_DB_SCHEMA})
     -m MD5FILE    - Where to store schema MD5 files           (def. ${DBFUNC_COMMON_MD5FILE})
     -c COMMAND    - Command: apply|refresh|drop
     -T            - Upload data used for tests execution      (def. ${DBFUNC_TESTING_DB})
@@ -27,7 +28,7 @@ Usage: $0 [options]
 __EOF__
 }
 
-while getopts hvl:s:p:u:d:m:c:T option; do
+while getopts hvl:s:p:u:d:e:m:c:T option; do
 	case $option in
 		\?) usage; exit 1;;
 		h) usage; exit 0;;
@@ -37,6 +38,7 @@ while getopts hvl:s:p:u:d:m:c:T option; do
 		p) DBFUNC_DB_PORT="${OPTARG}";;
 		u) DBFUNC_DB_USER="${OPTARG}";;
 		d) DBFUNC_DB_DATABASE="${OPTARG}";;
+		e) SCHEMA="${OPTARG}";;
 		m) DBFUNC_COMMON_MD5FILE="${OPTARG}";;
 		c) COMMAND="${OPTARG}";;
 		T) DBFUNC_TESTING_DB=1;;
@@ -49,4 +51,14 @@ case "${COMMAND}" in
 	*) die "Invalid command '${COMMAND}'";;
 esac
 
+DBFUNC_DB_SCHEMA="${SCHEMA:-public}"
+if [ -n "${SCHEMA}" ]; then
+	# custom schema is set as default using psqlrc file
+	PSQLRC="$(mktemp)"
+	echo "set search_path to ${DBFUNC_DB_SCHEMA}" > ${PSQLRC}
+	export PSQLRC
+fi
+
 eval dbfunc_common_schema_${COMMAND}
+
+[ -n "${PSQLRC}" ] && rm -f "${PSQLRC}" > /dev/null 2>&1

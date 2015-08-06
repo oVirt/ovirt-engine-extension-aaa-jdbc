@@ -34,7 +34,14 @@ public class DataSourceProvider {
 
     private static final String DATABASE_PASSWORD = "config.datasource.dbpassword";
 
+    public static final String SCHEMA_NAME = "config.datasource.schemaname";
+
+    public static final String DEFAULT_SCHEMA_NAME = "public";
+
     private static DataSource dataSource;
+
+    // TODO: move default schema into JDBC URL parameters when we use PostgreSQL 9.4+
+    private static String schemaName;
 
     public DataSourceProvider(Properties configuration) {
         String datasourceJndi = configuration.getProperty(JNDI);
@@ -47,6 +54,11 @@ public class DataSourceProvider {
                     configuration.getProperty(DATABASE_USER),
                     configuration.getProperty(DATABASE_PASSWORD)
             );
+        }
+
+        schemaName = configuration.getProperty(SCHEMA_NAME);
+        if (StringUtils.isBlank(schemaName)) {
+            schemaName = DEFAULT_SCHEMA_NAME;
         }
     }
 
@@ -92,5 +104,9 @@ public class DataSourceProvider {
 
     public DataSource provide() {
         return dataSource;
+    }
+
+    public static String getSchemaName() {
+        return schemaName;
     }
 }

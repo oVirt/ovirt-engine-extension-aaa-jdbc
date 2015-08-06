@@ -240,7 +240,8 @@ public class Sql {
             try {
                 conn.setAutoCommit(false);
                 try (java.sql.Statement statement = conn.createStatement()) {
-                    for (String update : statements) {
+                    for (String template : statements) {
+                        String update = Formatter.replaceSchemaPlaceholder(template);
                         LOG.trace("executing statements: {}", update.toString());
                         lastStatementRet = statement.executeUpdate(update, java.sql.Statement.RETURN_GENERATED_KEYS);
 
@@ -381,6 +382,7 @@ public class Sql {
             boolean scrollable,
             ExtMap ctx
         ) throws SQLException{
+            String query = Formatter.replaceSchemaPlaceholder(this.query);
             LOG.trace("cursor for: {}", query);
             ResultSet resultSet = null;
             java.sql.Statement statement = null;

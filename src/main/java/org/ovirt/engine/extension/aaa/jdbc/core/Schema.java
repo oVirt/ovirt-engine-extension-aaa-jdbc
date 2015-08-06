@@ -699,10 +699,10 @@ public class Schema {
         ) {
             Properties p = new Properties();
             p.load(reader);
-            GET_SETTINGS = p.getProperty("catalog.settings.get");
-            GET_USER = p.getProperty("authentication.user.get");
-            SEARCH_PRINCIPAL = p.getProperty("authorization.principal.search");
-            SEARCH_GROUP = p.getProperty("authorization.group.search");
+            GET_SETTINGS = Formatter.replaceSchemaPlaceholder(p.getProperty("catalog.settings.get"));
+            GET_USER = Formatter.replaceSchemaPlaceholder(p.getProperty("authentication.user.get"));
+            SEARCH_PRINCIPAL = Formatter.replaceSchemaPlaceholder(p.getProperty("authorization.principal.search"));
+            SEARCH_GROUP = Formatter.replaceSchemaPlaceholder(p.getProperty("authorization.group.search"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -794,11 +794,13 @@ public class Schema {
         for (Map.Entry<ExtKey, Object> entry: settingKeys.entrySet()) {
             updates.add(
                 Formatter.format(
-                    "UPDATE settings SET value = {} WHERE uuid = {}",
+                    Formatter.replaceSchemaPlaceholder(
+                        "UPDATE @SCHEMA_NAME@.settings SET value = {} WHERE uuid = {}"
+                    ),
                     Formatter.escapeString(entry.getValue()),
                     Formatter.escapeString(entry.getKey()
-                        .getUuid()
-                        .getUuid()
+                            .getUuid()
+                            .getUuid()
                     )
                 )
             );
@@ -817,7 +819,7 @@ public class Schema {
             if (id == null) {
                 id = new Sql.Query( // id can never change!
                     Formatter.format(
-                        "SELECT id from users where name = {} ",
+                        "SELECT id from @SCHEMA_NAME@.users where name = {} ",
                         Formatter.escapeString(userKeys.get(UserIdentifiers.USERNAME, String.class))
                     )
                 ).asInteger(ds, "id");
@@ -833,7 +835,7 @@ public class Schema {
              *  note: setX() and where() are ignored for deletes and insert accordingly.
              *  @see org.ovirt.engine.extension.aaa.jdbc.core.datasource.Sql.Template
              */
-            Sql.Template users = new Sql.Template(op, "users");
+            Sql.Template users = new Sql.Template(op, "@SCHEMA_NAME@.users");
             if (userKeys.containsKey(UserKeys.UUID)) {
                 users.setString("uuid", userKeys.get(UserKeys.UUID, String.class)
                     .toString());
@@ -942,7 +944,7 @@ public class Schema {
         try {
             Integer id = new Sql.Query( // id can never change!
                 Formatter.format(
-                    "SELECT id from groups where name = {} ",
+                    "SELECT id from @SCHEMA_NAME@.groups where name = {} ",
                     Formatter.escapeString(groupKeys.get(GroupIdentifiers.NAME, String.class))
                 )
             ).asInteger(ds, "id");
@@ -954,7 +956,7 @@ public class Schema {
             }
 
 
-            Sql.Template group = new Sql.Template(op, "groups");
+            Sql.Template group = new Sql.Template(op, "@SCHEMA_NAME@.groups");
             if (groupKeys.containsKey(GroupKeys.UUID)) {
                 group.setString("uuid", groupKeys.get(GroupKeys.UUID, String.class));
             } else if (op == Sql.ModificationTypes.INSERT) {
@@ -1016,7 +1018,7 @@ public class Schema {
         String memberCol = principal ? "user_id" : "group_id";
         Integer groupId = new Sql.Query( // id's can never change
             Formatter.format(
-                "SELECT id from groups where name = {}",
+                "SELECT id from @SCHEMA_NAME@.groups where name = {}",
                 Formatter.escapeString(groupName))
         ).asInteger(conn, "id");
         if (groupId == null) {
@@ -1029,8 +1031,8 @@ public class Schema {
                 Sql.ModificationTypes.INSERT:
                 Sql.ModificationTypes.DELETE,
                 principal?
-                "user_groups":
-                "group_groups"
+                "@SCHEMA_NAME@.user_groups":
+                "@SCHEMA_NAME@.group_groups"
             ).setInteger(
                 memberCol,
                 memberId
@@ -1070,14 +1072,14 @@ public class Schema {
         if (
             new Sql.Query(
                 Formatter.format(
-                    "SELECT count FROM failed_logins WHERE user_id = {} and minute_start = '{}'",
+                    "SELECT count FROM @SCHEMA_NAME@.failed_logins WHERE user_id = {} and minute_start = '{}'",
                     id,
                     new Date(minuteStart)
                 )
             ).asInteger(conn, "count") == null
         ) {
             new Sql.Modification(
-                new Sql.Template(Sql.ModificationTypes.INSERT, "failed_logins")
+                new Sql.Template(Sql.ModificationTypes.INSERT, "@SCHEMA_NAME@.failed_logins")
                 .setInteger("user_id", id)
                 .setTimestamp("minute_start", minuteStart)
                 .setInteger("count", 1)
@@ -1085,7 +1087,7 @@ public class Schema {
             ).execute(conn, false);
         } else {
             new Sql.Modification(
-                new Sql.Template(Sql.ModificationTypes.UPDATE, "failed_logins")
+                new Sql.Template(Sql.ModificationTypes.UPDATE, "@SCHEMA_NAME@.failed_logins")
                 .setIncrement("count")
                 .where(
                     Formatter.format(
@@ -1101,7 +1103,7 @@ public class Schema {
     private static void InsertPassHistoryRecord(Integer id, ExtMap input, Connection conn)
         throws SQLException {
         new Sql.Modification(
-            new Sql.Template(Sql.ModificationTypes.INSERT, "user_password_history")
+            new Sql.Template(Sql.ModificationTypes.INSERT, "@SCHEMA_NAME@.user_password_history")
             .setInteger("user_id", id)
             .setString("password", input.get(UserKeys.OLD_PASSWORD, String.class))
             .setTimestamp("changed", new Date().getTime())
@@ -1114,7 +1116,10 @@ public class Schema {
         for (ExtMap attribute: attributes) {
             if (hasAttribute(id, conn, attribute, user)) {
                 new Sql.Modification(
-                    new Sql.Template(Sql.ModificationTypes.UPDATE, user? "user_attributes": "group_attributes")
+                    new Sql.Template(
+                        Sql.ModificationTypes.UPDATE,
+                        user? "@SCHEMA_NAME@.user_attributes": "@SCHEMA_NAME@.group_attributes"
+                    )
                     .setString("value", attribute.get(SharedKeys.ATTRIBUTE_VALUE, String.class))
                     .where(
                         Formatter.format(
@@ -1127,7 +1132,9 @@ public class Schema {
                 ).execute(conn, false);
             } else {
                 new Sql.Modification(
-                    new Sql.Template(Sql.ModificationTypes.INSERT, user? "user_attributes": "group_attributes") // always insert first
+                    new Sql.Template(
+                        Sql.ModificationTypes.INSERT,
+                        user? "@SCHEMA_NAME@.user_attributes": "@SCHEMA_NAME@.group_attributes") // always insert first
                         .setString("name", attribute.get(SharedKeys.ATTRIBUTE_NAME, String.class))
                         .setString("value", attribute.get(SharedKeys.ATTRIBUTE_VALUE, String.class))
                         .setInteger(user? "user_id": "group_id", id)
@@ -1142,7 +1149,7 @@ public class Schema {
         return new Sql.Query(
             Formatter.format(
                 "SELECT value FROM {} WHERE {} = {} and name = {}",
-                user ? "user_attributes" : "group_attributes",
+                user ? "@SCHEMA_NAME@.user_attributes" : "@SCHEMA_NAME@.group_attributes",
                 user ? "user_id" : "group_id",
                 id,
                 Formatter.escapeString(attribute.get(SharedKeys.ATTRIBUTE_NAME, String.class))

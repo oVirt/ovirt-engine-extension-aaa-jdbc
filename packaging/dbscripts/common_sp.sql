@@ -116,28 +116,28 @@ LANGUAGE plpgsql;
 Create or replace FUNCTION generate_drop_all_functions_syntax() RETURNS SETOF text STABLE
    AS $procedure$
 BEGIN
-RETURN QUERY select 'drop function if exists ' || ns.nspname || '.' || proname || '(' || oidvectortypes(proargtypes) || ') cascade;' from pg_proc inner join pg_namespace ns on (pg_proc.pronamespace=ns.oid) where ns.nspname = 'public' order by proname;
+RETURN QUERY select 'drop function if exists ' || ns.nspname || '.' || proname || '(' || oidvectortypes(proargtypes) || ') cascade;' from pg_proc inner join pg_namespace ns on (pg_proc.pronamespace=ns.oid) where ns.nspname = '@SCHEMA_NAME@' order by proname;
 END; $procedure$
 LANGUAGE plpgsql;
 
 Create or replace FUNCTION generate_drop_all_views_syntax() RETURNS SETOF text STABLE
    AS $procedure$
 BEGIN
-RETURN QUERY select 'DROP VIEW if exists ' || table_name || ' CASCADE;' from information_schema.views where table_schema = 'public' order by table_name;
+RETURN QUERY select 'DROP VIEW if exists ' || table_schema || '.' || table_name || ' CASCADE;' from information_schema.views where table_schema = '@SCHEMA_NAME@' order by table_name;
 END; $procedure$
 LANGUAGE plpgsql;
 
 Create or replace FUNCTION generate_drop_all_tables_syntax() RETURNS SETOF text STABLE
    AS $procedure$
 BEGIN
-RETURN QUERY select 'DROP TABLE if exists ' || table_name || ' CASCADE;' from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' order by table_name;
+RETURN QUERY select 'DROP TABLE if exists ' || table_schema || '.' || table_name || ' CASCADE;' from information_schema.tables where table_schema = '@SCHEMA_NAME@' and table_type = 'BASE TABLE' order by table_name;
 END; $procedure$
 LANGUAGE plpgsql;
 
 Create or replace FUNCTION generate_drop_all_seq_syntax() RETURNS SETOF text STABLE
    AS $procedure$
 BEGIN
-RETURN QUERY select 'DROP SEQUENCE if exists ' || sequence_name || ' CASCADE;' from information_schema.sequences  where sequence_schema = 'public' order by sequence_name;
+RETURN QUERY select 'DROP SEQUENCE if exists ' || sequence_schema || '.' || sequence_name || ' CASCADE;' from information_schema.sequences  where sequence_schema = '@SCHEMA_NAME@' order by sequence_name;
 END; $procedure$
 LANGUAGE plpgsql;
 
@@ -147,7 +147,7 @@ BEGIN
 RETURN QUERY SELECT 'DROP TYPE if exists ' || c.relname::information_schema.sql_identifier || ' CASCADE;'
    FROM pg_namespace n, pg_class c, pg_type t
    WHERE n.oid = c.relnamespace and t.typrelid = c.oid and c.relkind = 'c'::"char" and
-   n.nspname = 'public'
+   n.nspname = '@SCHEMA_NAME@'
    ORDER BY  c.relname::information_schema.sql_identifier;
 END; $procedure$
 LANGUAGE plpgsql;
@@ -160,7 +160,7 @@ BEGIN
    retvalue := character_maximum_length from information_schema.columns
     where
     table_name ilike v_table and column_name ilike v_column and
-    table_schema = 'public' and udt_name in ('char','varchar');
+    table_schema = '@SCHEMA_NAME@' and udt_name in ('char','varchar');
    return retvalue;
 END; $procedure$
 LANGUAGE plpgsql;
@@ -213,7 +213,7 @@ CREATE OR REPLACE FUNCTION fn_db_is_table_exists (v_table varchar(64)) returns b
    retvalue  boolean;
 BEGIN
    retvalue := EXISTS (
-        SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND table_name ILIKE v_table
+        SELECT * FROM information_schema.tables WHERE table_schema = '@SCHEMA_NAME@' AND table_name ILIKE v_table
    );
    return retvalue;
 END; $procedure$

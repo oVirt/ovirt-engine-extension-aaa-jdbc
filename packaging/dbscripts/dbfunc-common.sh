@@ -35,16 +35,21 @@ dbfunc_common_hook_sequence_numbers_update() {
 
 #cleans db by dropping all objects
 dbfunc_common_schema_drop() {
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" > /dev/null
+	# we need to create custom schema if not exists, because of common sp creation
+	_dbfunc_common_create_custom_schema
+
+	_dbfunc_common_create_common_sp
 	local statement
 	statement="$(
-		dbfunc_psql_die --command="select * from generate_drop_all_seq_syntax();"
-		dbfunc_psql_die --command="select * from generate_drop_all_tables_syntax();"
-		dbfunc_psql_die --command="select * from generate_drop_all_views_syntax();"
-		dbfunc_psql_die --command="select * from generate_drop_all_functions_syntax();"
-		dbfunc_psql_die --command="select * from generate_drop_all_user_types_syntax();"
+		dbfunc_psql_die --command="select * from ${DBFUNC_DB_SCHEMA}.generate_drop_all_seq_syntax();"
+		dbfunc_psql_die --command="select * from ${DBFUNC_DB_SCHEMA}.generate_drop_all_tables_syntax();"
+		dbfunc_psql_die --command="select * from ${DBFUNC_DB_SCHEMA}.generate_drop_all_views_syntax();"
+		dbfunc_psql_die --command="select * from ${DBFUNC_DB_SCHEMA}.generate_drop_all_user_types_syntax();"
+		dbfunc_psql_die --command="select * from ${DBFUNC_DB_SCHEMA}.generate_drop_all_functions_syntax();"
 	)" || exit 1
 	dbfunc_psql_die --command="${statement}" > /dev/null
+
+	_dbfunc_common_drop_custom_schema
 }
 
 dbfunc_common_restore_permissions() {
@@ -64,13 +69,15 @@ dbfunc_common_schema_apply() {
 	# check database connection
 	dbfunc_psql_die --command="select 1;" > /dev/null
 
-	echo "Creating schema ${DBFUNC_DB_USER}@${DBFUNC_DB_HOST}:${DBFUNC_DB_PORT}/${DBFUNC_DB_DATABASE}"
+	_dbfunc_common_create_custom_schema
+
+	echo "Creating schema ${DBFUNC_DB_SCHEMA} in ${DBFUNC_DB_USER}@${DBFUNC_DB_HOST}:${DBFUNC_DB_PORT}/${DBFUNC_DB_DATABASE}"
 	if [ "$(dbfunc_psql_statement_parsable "
 		select count(*) as count
 		from pg_catalog.pg_tables
 		where
 			tablename = 'schema_version' and
-			schemaname = 'public'
+			schemaname = '${DBFUNC_DB_SCHEMA}'
 	")" -eq 0 ]; then
 		echo "Creating fresh schema"
 		_dbfunc_common_schema_create
@@ -86,6 +93,8 @@ dbfunc_common_schema_apply() {
 }
 
 dbfunc_common_schema_refresh() {
+	_dbfunc_common_create_custom_schema
+
 	local permissions
 
 	echo "Saving custom users permissions on database objects..."
@@ -152,7 +161,7 @@ _dbfunc_common_schema_create() {
 	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/create_functions.sql" > /dev/null
 
 	echo "Creating common functions..."
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" > /dev/null
+	_dbfunc_common_create_common_sp
 
 	#inserting initial data
 	dbfunc_common_hook_init_insert_data
@@ -231,7 +240,7 @@ Please fix numbering to interval 0$(( ${last} + 1)) to 0$(( ${last} + 10)) and r
 					fi
 				fi
 				dbfunc_psql_die --command="
-					insert into schema_version(
+					insert into ${DBFUNC_DB_SCHEMA}.schema_version(
 						version,
 						script,
 						checksum,
@@ -270,17 +279,17 @@ Please fix numbering to interval 0$(( ${last} + 1)) to 0$(( ${last} + 10)) and r
 #drops views before upgrade or refresh operations
 _dbfunc_common_views_drop() {
 	# common stored procedures are executed first (for new added functions to be valid)
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" > /dev/null
-	dbfunc_psql_die --command="select * from generate_drop_all_views_syntax();" | \
+	_dbfunc_common_create_common_sp
+	dbfunc_psql_die --command="select * from ${DBFUNC_DB_SCHEMA}.generate_drop_all_views_syntax();" | \
 		dbfunc_psql_die > /dev/null
 }
 
 #drops sps before upgrade or refresh operations
 _dbfunc_common_sps_drop() {
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" > /dev/null
+	_dbfunc_common_create_common_sp
 	local statement
 	statement="$(
-		dbfunc_psql_die --command="select * from generate_drop_all_functions_syntax();"
+		dbfunc_psql_die --command="select * from ${DBFUNC_DB_SCHEMA}.generate_drop_all_functions_syntax();"
 	)" || exit 1
 	dbfunc_psql_die --command="${statement}" > /dev/null
 
@@ -296,7 +305,7 @@ _dbfunc_common_sps_refresh() {
 		echo "Creating stored procedures from ${file}..."
 		dbfunc_psql_die --file="${file}" > /dev/null
 	done || exit $?
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" > /dev/null
+	_dbfunc_common_create_common_sp
 }
 
 _dbfunc_common_get_custom_user_permissions() {
@@ -310,7 +319,7 @@ _dbfunc_common_run_pre_upgrade() {
 	#Dropping all views & sps
 	_dbfunc_common_schema_refresh_drop
 	# common stored procedures are executed first (for new added functions to be valid)
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" > /dev/null
+	_dbfunc_common_create_common_sp
 	#update sequence numers
 	dbfunc_common_hook_sequence_numbers_update
 	#run pre upgrade scripts
@@ -382,7 +391,7 @@ _dbfunc_common_run_file() {
 _dbfunc_common_get_current_version() {
 	dbfunc_psql_statement_parsable "
 		select version
-		from schema_version
+		from ${DBFUNC_DB_SCHEMA}.schema_version
 		where current = true
 		order by id
 		LIMIT 1
@@ -393,7 +402,7 @@ _dbfunc_common_get_installed_version() {
 	local cheksum="$1"
 	dbfunc_psql_statement_parsable "
 		select version
-		from schema_version
+		from ${DBFUNC_DB_SCHEMA}.schema_version
 		where
 			checksum = '${cheksum}' and
 			state = 'INSTALLED'
@@ -404,12 +413,12 @@ _dbfunc_common_set_last_version() {
 	local id="$(
 		dbfunc_psql_statement_parsable "
 			select max(id)
-			from schema_version
+			from ${DBFUNC_DB_SCHEMA}.schema_version
 			where state in ('INSTALLED','SKIPPED')
 		"
 	)"
 	dbfunc_psql_die --command="
-		update schema_version
+		update ${DBFUNC_DB_SCHEMA}.schema_version
 		set current=(id=${id});
 	" > /dev/null
 }
@@ -462,4 +471,28 @@ _dbfunc_common_validate_version_uniqueness() {
 		[ "${ver}" != "${prev}" ] || die "Operation aborted, found duplicate version: ${ver}"
 		prev="${ver}"
 	done || exit $?
+}
+
+_dbfunc_common_create_custom_schema() {
+	if [ "${DBFUNC_DB_SCHEMA}" != "public" ]; then
+		echo "Creating custom schema ${DBFUNC_DB_SCHEMA} ..."
+		dbfunc_psql_die --no-psqlrc --command="CREATE SCHEMA ${DBFUNC_DB_SCHEMA} AUTHORIZATION ${DBFUNC_DB_USER};" > /dev/null
+	fi
+}
+
+_dbfunc_common_drop_custom_schema() {
+	if [ "${DBFUNC_DB_SCHEMA}" != "public" ]; then
+		echo "Removing custom schema ${DBFUNC_DB_SCHEMA} ..."
+		dbfunc_psql_die --no-psqlrc --command="DROP SCHEMA IF EXISTS ${DBFUNC_DB_SCHEMA} CASCADE;" > /dev/null
+	fi
+}
+
+_dbfunc_common_create_common_sp() {
+	local tmpfile=$(mktemp)
+	sed \
+		-e "s/@SCHEMA_NAME@/${DBFUNC_DB_SCHEMA}/g" \
+		"${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" \
+		> "${tmpfile}"
+	dbfunc_psql_die --file="${tmpfile}" > /dev/null
+	rm -f ${tmpfile}
 }

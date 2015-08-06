@@ -3,6 +3,7 @@
 
 DBFUNC_DB_USER="${DBFUNC_DB_USER:-engine}"
 DBFUNC_DB_DATABASE="${DBFUNC_DB_DATABASE:-engine}"
+DBFUNC_DB_DATABASE="${DBFUNC_DB_SCHEMA:-public}"
 
 dbfunc_common_hook_init_insert_data() {
 	# Apply changes to database
@@ -44,5 +45,5 @@ dbfunc_common_hook_materialized_viewsrefresh_() {
 }
 
 dbfunc_common_hook_sequence_numbers_update() {
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/update_sequence_numbers.sql" > /dev/null    
+	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/update_sequence_numbers.sql" > /dev/null
 }
