@@ -666,8 +666,8 @@ public class Cli {
                         ContextKeys.SEARCH_FILTER,
                         Formatter.format(
                             "{} = {}",
-                            Formatter.escapeString(Schema.SEARCH_KEYS.get(Authz.GroupRecord.NAME)),
-                            context.get(ContextKeys.POSITIONAL, String.class)
+                            Schema.SEARCH_KEYS.get(Authz.GroupRecord.NAME),
+                            Formatter.escapeString(context.get(ContextKeys.POSITIONAL, String.class))
                         )
                     );
                     context.mput(Global.InvokeKeys.SEARCH_CONTEXT,
