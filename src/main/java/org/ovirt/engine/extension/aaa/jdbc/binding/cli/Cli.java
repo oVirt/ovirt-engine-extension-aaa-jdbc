@@ -431,7 +431,7 @@ public class Cli {
                 public void invoke(ExtMap context, Map<String, Object> args) {
                     try {
                         String newPass = null;
-                        boolean nopass;
+                        boolean nopass = false;
                         boolean forcePassword = false;
                         context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.UPDATE);
                         putUserResetPassParams(context, args);
@@ -442,10 +442,6 @@ public class Cli {
                             nopass =
                                 context.get(Schema.InvokeKeys.ENTITY_KEYS, ExtMap.class)
                                 .get(Schema.UserKeys.NOPASS, Boolean.class, false);
-                            if (!nopass && StringUtils.isEmpty(newPass)) {
-                                addContextMessage(context, true, "Empty password not allowed");
-                                context.put(ContextKeys.EXIT_STATUS, GENERAL_ERROR);
-                            }
                             forcePassword = context.get(Schema.InvokeKeys.ENTITY_KEYS, ExtMap.class)
                                 .get(Schema.UserKeys.FORCE_PASSWORD);
                         }
@@ -461,7 +457,7 @@ public class Cli {
                             }
                         }
                         if (!context.containsKey(ContextKeys.EXIT_STATUS) &&
-                            !StringUtils.isEmpty(newPass) &&
+                            !nopass &&
                             !forcePassword
                         ) {
                             // test pass history & complexity
