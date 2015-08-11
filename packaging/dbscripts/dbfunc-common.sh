@@ -155,10 +155,10 @@ _dbfunc_common_schema_create() {
 	dbfunc_psql_die --command="ALTER DATABASE \"${DBFUNC_DB_DATABASE}\" SET client_min_messages=ERROR;" > /dev/null
 
 	echo "Creating tables..."
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/create_tables.sql" > /dev/null
+	dbfunc_psql_file_on_schema_die "${DBFUNC_COMMON_DBSCRIPTS_DIR}/create_tables.sql" > /dev/null
 
 	echo "Creating functions..."
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/create_functions.sql" > /dev/null
+	dbfunc_psql_file_on_schema_die "${DBFUNC_COMMON_DBSCRIPTS_DIR}/create_functions.sql" > /dev/null
 
 	echo "Creating common functions..."
 	_dbfunc_common_create_common_sp
@@ -172,7 +172,7 @@ _dbfunc_common_schema_create() {
 
 _dbfunc_common_schema_upgrade() {
 
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/upgrade/01_00_0000_set_version.sql" > /dev/null
+	dbfunc_psql_file_on_schema_die "${DBFUNC_COMMON_DBSCRIPTS_DIR}/upgrade/01_00_0000_set_version.sql" > /dev/null
 
 	local files="$(_dbfunc_common_get_files "upgrade" 1)"
 	if [ -n "${files}" ]; then
@@ -294,7 +294,7 @@ _dbfunc_common_sps_drop() {
 	dbfunc_psql_die --command="${statement}" > /dev/null
 
 	# recreate generic functions
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/create_functions.sql" > /dev/null
+	dbfunc_psql_file_on_schema_die "${DBFUNC_COMMON_DBSCRIPTS_DIR}/create_functions.sql" > /dev/null
 }
 
 #refreshes sps
@@ -303,7 +303,7 @@ _dbfunc_common_sps_refresh() {
 	local file
 	find "${DBFUNC_COMMON_DBSCRIPTS_DIR}" -name '*sp.sql' | sort | while read file; do
 		echo "Creating stored procedures from ${file}..."
-		dbfunc_psql_die --file="${file}" > /dev/null
+		dbfunc_psql_file_on_schema_die "${file}" > /dev/null
 	done || exit $?
 	_dbfunc_common_create_common_sp
 }
@@ -340,7 +340,7 @@ _dbfunc_common_run_post_upgrade() {
 	custom_materialized_views_file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/upgrade/post_upgrade/custom/create_materialized_views.sql"
 	if [ -f "${custom_materialized_views_file}" ]; then
 		echo "running custom materialized views from '${custom_materialized_views_file}'..."
-		if ! dbfunc_psql --file="${custom_materialized_views_file}"; then
+		if ! dbfunc_psql_file_on_schema "${custom_materialized_views_file}"; then
 			#drop all custom views
 			dbfunc_psql --command="select DropAllCustomMaterializedViews();" > /dev/null
 			echo "Illegal syntax in custom Materialized Views, Custom Materialized Views were dropped."
@@ -369,7 +369,7 @@ _dbfunc_common_run_required_scripts() {
 		echo "${sql}" | grep -q "_sp.sql" || \
 			die "invalid source file ${sql} in ${file}, source files must end with '_sp.sql'"
 		echo "Running helper functions from '${sql}' for '${file}'"
-		dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/${sql}" > /dev/null
+		dbfunc_psql_file_on_schema_die "${DBFUNC_COMMON_DBSCRIPTS_DIR}/${sql}" > /dev/null
 	done < "${script}"
 }
 
@@ -384,7 +384,7 @@ _dbfunc_common_run_file() {
 		)
 	else
 		echo "Running upgrade sql script '${file}'..."
-		dbfunc_psql_die --file="${file}" > /dev/null
+		dbfunc_psql_file_on_schema_die "${file}" > /dev/null
 	fi
 }
 
@@ -493,6 +493,6 @@ _dbfunc_common_create_common_sp() {
 		-e "s/@SCHEMA_NAME@/${DBFUNC_DB_SCHEMA}/g" \
 		"${DBFUNC_COMMON_DBSCRIPTS_DIR}/common_sp.sql" \
 		> "${tmpfile}"
-	dbfunc_psql_die --file="${tmpfile}" > /dev/null
+	dbfunc_psql_file_on_schema_die "${tmpfile}" > /dev/null
 	rm -f ${tmpfile}
 }

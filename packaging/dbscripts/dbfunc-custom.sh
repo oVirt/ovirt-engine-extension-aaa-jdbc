@@ -9,14 +9,14 @@ dbfunc_common_hook_init_insert_data() {
 	# Apply changes to database
 	for script in $(ls "${DBFUNC_COMMON_DBSCRIPTS_DIR}"/data/*insert_*.sql); do
 		echo "Inserting data from ${script} ..."
-		dbfunc_psql_die --file="${script}" > /dev/null
+		dbfunc_psql_file_on_schema_die "${script}" > /dev/null
 	done
 
         # Insert testing data
         if [ -n "${DBFUNC_TESTING_DB}" ]; then
 		for script in $(ls "${DBFUNC_COMMON_DBSCRIPTS_DIR}"/test-data/*.sql); do
 			echo "Inserting data from ${script} ..."
-			dbfunc_psql_die --file="${script}" > /dev/null
+			dbfunc_psql_file_on_schema_die "${script}" > /dev/null
 		done
 	fi
 }
@@ -45,5 +45,5 @@ dbfunc_common_hook_materialized_viewsrefresh_() {
 }
 
 dbfunc_common_hook_sequence_numbers_update() {
-	dbfunc_psql_die --file="${DBFUNC_COMMON_DBSCRIPTS_DIR}/update_sequence_numbers.sql" > /dev/null
+	dbfunc_psql_file_on_schema_die "${DBFUNC_COMMON_DBSCRIPTS_DIR}/update_sequence_numbers.sql" > /dev/null
 }

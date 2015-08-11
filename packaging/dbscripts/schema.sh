@@ -52,13 +52,5 @@ case "${COMMAND}" in
 esac
 
 DBFUNC_DB_SCHEMA="${SCHEMA:-public}"
-if [ -n "${SCHEMA}" ]; then
-	# custom schema is set as default using psqlrc file
-	PSQLRC="$(mktemp)"
-	echo "set search_path to ${DBFUNC_DB_SCHEMA}" > ${PSQLRC}
-	export PSQLRC
-fi
 
 eval dbfunc_common_schema_${COMMAND}
-
-[ -n "${PSQLRC}" ] && rm -f "${PSQLRC}" > /dev/null 2>&1

@@ -50,6 +50,19 @@ dbfunc_psql_die() {
 	dbfunc_psql "$@" || die "Cannot execute sql command: $*"
 }
 
+dbfunc_psql_file_on_schema() {
+	local sqlfile=$1
+	local tmpfile=$(mktemp)
+	echo "SET search_path TO ${DBFUNC_DB_SCHEMA};" > "${tmpfile}"
+	cat "${sqlfile}" >> "${tmpfile}"
+	dbfunc_psql --file="${tmpfile}"
+	rm -f "${tmpfile}"
+}
+
+dbfunc_psql_file_on_schema_die() {
+	dbfunc_psql_file_on_schema "$@" || die "Cannot execute sql command: $*"
+}
+
 dbfunc_psql_allow_errors() {
 	dbfunc_psql_raw \
 		${DBFUNC_VERBOSE:+--echo-all} \
