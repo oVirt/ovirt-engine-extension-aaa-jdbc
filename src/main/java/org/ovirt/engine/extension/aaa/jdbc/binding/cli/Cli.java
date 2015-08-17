@@ -137,11 +137,17 @@ public class Cli {
         }
 
         private Map<String, Object> nextArgs(ExtMap context, boolean showHelp) {
+            Map<String, String> contextSubstitutions = new HashMap<>();
+            contextSubstitutions.put("@ENGINE_ETC@", System.getProperty("org.ovirt.engine.aaa.jdbc.engineEtc"));
+            contextSubstitutions.put("@PROGRAM_NAME@", System.getProperty("org.ovirt.engine.aaa.jdbc.programName"));
+            contextSubstitutions.put("@MODULE_LIST@", StringUtils.join(this.getSubModules(), "\n  ") + "\n  help");
+
             Map<String, Object> parsed;
             ArgumentsParser argumentsParser = new ArgumentsParser(
                 Cli.class.getResourceAsStream("arguments.properties"),
                 this.getName()
             );
+            argumentsParser.getSubstitutions().putAll(contextSubstitutions);
             @SuppressWarnings("unchecked")
             List<String> tail = context.get(ContextKeys.TAIL, List.class);
             argumentsParser.parse(tail); // updates tail.
@@ -158,15 +164,7 @@ public class Cli {
             if (showHelp || !context.containsKey(ContextKeys.EXIT_STATUS)) {
 
                 if (showHelp || (Boolean)parsed.get("help") ||  (tail.size() > 0 && tail.get(0).equals("help"))) {
-                    addContextMessage(context, false,
-                        argumentsParser.getUsage().replaceAll(
-                            "@PROGRAM_NAME@",
-                            System.getProperty("org.ovirt.engine.aaa.jdbc.programName")
-                        ).replaceAll(
-                            "@MODULE_LIST@",
-                            StringUtils.join(this.getSubModules(), "\n  ") + "\n  help"
-                        )
-                    );
+                    addContextMessage(context, false, argumentsParser.getUsage());
                     context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
                 }
             }
