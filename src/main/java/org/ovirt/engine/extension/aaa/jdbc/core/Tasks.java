@@ -82,7 +82,7 @@ public class Tasks extends Observable {
                     new Sql.Modification(
                         new Sql.Template(
                             Sql.ModificationTypes.DELETE,
-                            "@SCHEMA_NAME@.failed_logins"
+                            "failed_logins"
                         ).where(
                             Formatter.format("minute_start < '{}'", new Date(time))
                         ).asSql()

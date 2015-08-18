@@ -40,26 +40,25 @@ public class DataSourceProvider {
 
     private static DataSource dataSource;
 
-    // TODO: move default schema into JDBC URL parameters when we use PostgreSQL 9.4+
-    private static String schemaName;
-
     public DataSourceProvider(Properties configuration) {
         String datasourceJndi = configuration.getProperty(JNDI);
+        String schemaName = configuration.getProperty(SCHEMA_NAME);
+        if (StringUtils.isBlank(schemaName)) {
+            schemaName = DEFAULT_SCHEMA_NAME;
+        }
+
+        DataSource ds;
         if (!StringUtils.isEmpty(datasourceJndi)) {
-            dataSource = getDataSourceFromJNDI(datasourceJndi);
+            ds = getDataSourceFromJNDI(datasourceJndi);
         } else {
-            dataSource = createDataSource(
+            ds = createDataSource(
                     configuration.getProperty(JDBC_DRIVER),
                     configuration.getProperty(JDBC_URL),
                     configuration.getProperty(DATABASE_USER),
                     configuration.getProperty(DATABASE_PASSWORD)
             );
         }
-
-        schemaName = configuration.getProperty(SCHEMA_NAME);
-        if (StringUtils.isBlank(schemaName)) {
-            schemaName = DEFAULT_SCHEMA_NAME;
-        }
+        dataSource = new SchemaAwareDataSource(ds, schemaName);
     }
 
     private DataSource createDataSource(
@@ -104,9 +103,5 @@ public class DataSourceProvider {
 
     public DataSource provide() {
         return dataSource;
-    }
-
-    public static String getSchemaName() {
-        return schemaName;
     }
 }

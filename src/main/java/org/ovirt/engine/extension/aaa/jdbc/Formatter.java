@@ -18,7 +18,6 @@
 package org.ovirt.engine.extension.aaa.jdbc;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.ovirt.engine.extension.aaa.jdbc.core.datasource.DataSourceProvider;
 import org.slf4j.helpers.MessageFormatter;
 
 public class Formatter {
@@ -54,9 +53,5 @@ public class Formatter {
      */
     public static String escapeString(Object value) {
         return value == null ? null : escapeString(value.toString());
-    }
-
-    public static String replaceSchemaPlaceholder(String dbObject) {
-        return dbObject.replaceAll("@SCHEMA_NAME@", DataSourceProvider.getSchemaName());
     }
 }
