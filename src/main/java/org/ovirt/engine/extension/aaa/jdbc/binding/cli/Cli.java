@@ -153,19 +153,20 @@ public class Cli {
             argumentsParser.parse(tail); // updates tail.
             parsed = argumentsParser.getParsedArgs();
 
-            List<Throwable> errors = argumentsParser.getErrors();
-            if (errors.size() > 0) {
-                for (Throwable thr: errors) {
-                    context.get(ContextKeys.THROWABLES, List.class).add(thr);
-                    context.get(ContextKeys.ERR_MESSAGES, List.class).add(thr.getMessage());
-                }
-                context.mput(ContextKeys.EXIT_STATUS, ARGUMENT_PARSING_ERROR);
-            }
             if (showHelp || !context.containsKey(ContextKeys.EXIT_STATUS)) {
 
                 if (showHelp || (Boolean)parsed.get("help") ||  (tail.size() > 0 && tail.get(0).equals("help"))) {
                     addContextMessage(context, false, argumentsParser.getUsage());
                     context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
+                } else {
+                    List<Throwable> errors = argumentsParser.getErrors();
+                    if (errors.size() > 0) {
+                        for (Throwable thr: errors) {
+                            context.get(ContextKeys.THROWABLES, List.class).add(thr);
+                            context.get(ContextKeys.ERR_MESSAGES, List.class).add(thr.getMessage());
+                        }
+                        context.mput(ContextKeys.EXIT_STATUS, ARGUMENT_PARSING_ERROR);
+                    }
                 }
             }
             return parsed;
