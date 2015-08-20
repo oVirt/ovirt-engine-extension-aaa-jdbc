@@ -475,8 +475,18 @@ _dbfunc_common_validate_version_uniqueness() {
 
 _dbfunc_common_create_custom_schema() {
 	if [ "${DBFUNC_DB_SCHEMA}" != "public" ]; then
-		echo "Creating custom schema ${DBFUNC_DB_SCHEMA} ..."
-		dbfunc_psql_die --no-psqlrc --command="CREATE SCHEMA ${DBFUNC_DB_SCHEMA} AUTHORIZATION ${DBFUNC_DB_USER};" > /dev/null
+		# TODO Change to CREATE SCHEMA IF NOT EXISTS when we will use PostgreSQL 9+
+		if [ "$(dbfunc_psql_statement_parsable "
+			SELECT COUNT(schema_name)
+			FROM information_schema.schemata
+			WHERE schema_name = '${DBFUNC_DB_SCHEMA}'
+		")" -eq 0 ]; then
+			echo "Creating custom schema ${DBFUNC_DB_SCHEMA} ..."
+			dbfunc_psql_die \
+				--no-psqlrc \
+				--command="CREATE SCHEMA ${DBFUNC_DB_SCHEMA} AUTHORIZATION ${DBFUNC_DB_USER};" \
+				> /dev/null
+		fi
 	fi
 }
 
