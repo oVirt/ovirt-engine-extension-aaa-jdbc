@@ -123,7 +123,7 @@ public class Authentication implements Observer {
         String newCredentials
     ) throws GeneralSecurityException, SQLException {
         long loginTime = new Date().getTime(); // start the clock
-        AuthResponse response;
+        AuthResponse response = null;
 
         LOG.debug("Authenticating subject:{} login time:{}", subject, DateUtils.toISO(loginTime));
         try {
@@ -163,7 +163,9 @@ public class Authentication implements Observer {
             }
             return response;
         } finally {
-            delayResponse(loginTime);
+            if (response == null || response.result != Authn.AuthResult.SUCCESS) {
+                delayResponse(loginTime);
+            }
         }
     }
 
