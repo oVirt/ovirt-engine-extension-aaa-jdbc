@@ -21,17 +21,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.ovirt.engine.api.extensions.ExtKey;
 import org.ovirt.engine.api.extensions.ExtMap;
+import org.ovirt.engine.extension.aaa.jdbc.DateUtils;
 import org.ovirt.engine.extension.aaa.jdbc.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,7 +142,7 @@ public class Sql {
         public Template setTimestamp(String column, Long value){
             if (value != null) {
                 columns.add(column);
-                values.add( "'" + new Date(value) + "'");
+                values.add(DateUtils.toTimestamp(value));
             }
             return this;
         }

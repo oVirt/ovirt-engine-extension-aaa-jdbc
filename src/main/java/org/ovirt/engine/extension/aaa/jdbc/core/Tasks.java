@@ -2,10 +2,8 @@ package org.ovirt.engine.extension.aaa.jdbc.core;
 
 import java.sql.SQLException;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
-
 import javax.sql.DataSource;
 
 import org.ovirt.engine.api.extensions.ExtMap;
@@ -36,7 +34,7 @@ public class Tasks extends Observable {
     }
 
     public void execute() throws SQLException {
-        long now = new Date().getTime();
+        long now = System.currentTimeMillis();
         if (
             isDue(
                 lastSettings,
@@ -70,7 +68,7 @@ public class Tasks extends Observable {
             Integer old = settings.get(Schema.Settings.FAILED_LOGINS_OLD_DAYS, Integer.class);
             if (old != Global.SETTINGS_SPECIAL) {
                 long time = DateUtils.add(
-                    new Date().getTime(),
+                    System.currentTimeMillis(),
                     Calendar.DAY_OF_YEAR,
                     -old
                 );
@@ -84,7 +82,7 @@ public class Tasks extends Observable {
                             Sql.ModificationTypes.DELETE,
                             "failed_logins"
                         ).where(
-                            Formatter.format("minute_start < '{}'", new Date(time))
+                            Formatter.format("minute_start < {}", DateUtils.toTimestamp(time))
                         ).asSql()
                     ).execute(ds);
                 } catch (SQLException e) {

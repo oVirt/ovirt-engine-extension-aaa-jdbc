@@ -25,7 +25,6 @@ import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -246,7 +245,7 @@ public class IntegrationTest {
                 before(
                     Formatter.format(
                         "UPDATE users SET password_valid_to = '{}' WHERE id = 1 ;",
-                        DateUtils.toISO(DateUtils.add(new Date().getTime(), Calendar.HOUR, 1))
+                        DateUtils.toISO(DateUtils.add(System.currentTimeMillis(), Calendar.HOUR, 1))
                     )
                 ),
                 after("UPDATE settings SET value =  '0' WHERE name = 'PASSWORD_EXPIRATION_NOTICE_DAYS' ;")

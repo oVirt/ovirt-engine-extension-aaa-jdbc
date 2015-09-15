@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,7 +39,6 @@ import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
@@ -1070,9 +1068,9 @@ public class Schema {
         if (
             new Sql.Query(
                 Formatter.format(
-                    "SELECT count FROM failed_logins WHERE user_id = {} and minute_start = '{}'",
+                    "SELECT count FROM failed_logins WHERE user_id = {} and minute_start = {}",
                     id,
-                    new Date(minuteStart)
+                    DateUtils.toTimestamp(minuteStart)
                 )
             ).asInteger(conn, "count") == null
         ) {
@@ -1089,9 +1087,9 @@ public class Schema {
                 .setIncrement("count")
                 .where(
                     Formatter.format(
-                        "user_id = {} AND minute_start = '{}'",
+                        "user_id = {} AND minute_start = {}",
                         id,
-                        new Date(minuteStart)
+                        DateUtils.toTimestamp(minuteStart)
                     )
                 ).asSql()
             ).execute(conn, false);
@@ -1104,7 +1102,7 @@ public class Schema {
             new Sql.Template(Sql.ModificationTypes.INSERT, "user_password_history")
             .setInteger("user_id", id)
             .setString("password", input.get(UserKeys.OLD_PASSWORD, String.class))
-            .setTimestamp("changed", new Date().getTime())
+            .setTimestamp("changed", System.currentTimeMillis())
             .asSql()
         ).execute(conn, false);
     }

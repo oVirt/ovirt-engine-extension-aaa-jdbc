@@ -17,7 +17,6 @@
 package org.ovirt.engine.extension.aaa.jdbc.core.datasource;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.ovirt.engine.extension.aaa.jdbc.DateUtils;
@@ -61,7 +60,7 @@ public class UserTest {
                 test.loginTime
             );
             boolean isLoginAllowed = Schema.User.getLoginAllowed(
-                new Date(test.loginTime).getTime(),
+                test.loginTime,
                 user.getLoginAllowed()
             ) > test.loginTime;
             if (isLoginAllowed != test.isLoginAllowed) {

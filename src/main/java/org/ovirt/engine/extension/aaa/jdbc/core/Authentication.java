@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -122,7 +121,7 @@ public class Authentication implements Observer {
         boolean credChange,
         String newCredentials
     ) throws GeneralSecurityException, SQLException {
-        long loginTime = new Date().getTime(); // start the clock
+        long loginTime = System.currentTimeMillis(); // start the clock
         AuthResponse response = null;
 
         LOG.debug("Authenticating subject:{} login time:{}", subject, DateUtils.toISO(loginTime));
@@ -393,7 +392,7 @@ public class Authentication implements Observer {
 
         long interval;
 
-        while ((interval = (endTime - new Date().getTime())) > 0) {
+        while ((interval = (endTime - System.currentTimeMillis())) > 0) {
             try {
                 Thread.sleep(Math.max(MIN_SLEEP, interval));
                 break;
@@ -410,10 +409,10 @@ public class Authentication implements Observer {
 
         Integer loginMinutes = settings.get(Schema.Settings.MAX_LOGIN_MINUTES, Integer.class);
         if (loginMinutes != Global.SETTINGS_SPECIAL) {
-            Calendar globalMax = Calendar.getInstance();
-            globalMax.setTime(new Date(loginTime));
+            Calendar globalMax = DateUtils.getUtcCalendar();
+            globalMax.setTimeInMillis(loginTime);
             globalMax.add(Calendar.MINUTE, loginMinutes);
-            timeConstraints.add(globalMax.getTime().getTime());
+            timeConstraints.add(globalMax.getTimeInMillis());
         }
         Collections.sort(timeConstraints);
         return timeConstraints.get(0);
