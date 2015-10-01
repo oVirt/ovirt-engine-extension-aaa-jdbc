@@ -539,8 +539,8 @@ public class Schema {
 
         public void addOldPassword(PasswordHistory passwordHistory, int passwordHistoryLimit) {
             oldPasswords.add(passwordHistory);
-            if (oldPasswords.size() > passwordHistoryLimit) {
-                oldPasswords.remove(oldPasswords.last());
+            if (oldPasswords.size() >= passwordHistoryLimit) {
+                oldPasswords.remove(oldPasswords.first());
             }
         }
 
