@@ -1,5 +1,6 @@
 package org.ovirt.engine.extension.aaa.jdbc.core;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -109,7 +110,6 @@ public class Authentication implements Observer {
 
     private final DataSource ds;
     private ExtMap settings;
-    private PasswordStore passwordStore;
     private Complexity complexity;
     public Authentication(DataSource ds) {
         this.ds = ds;
@@ -120,7 +120,7 @@ public class Authentication implements Observer {
         String credentials,
         boolean credChange,
         String newCredentials
-    ) throws GeneralSecurityException, SQLException {
+    ) throws GeneralSecurityException, SQLException, IOException {
         long loginTime = System.currentTimeMillis(); // start the clock
         AuthResponse response = null;
 
@@ -145,7 +145,15 @@ public class Authentication implements Observer {
                 if (credChangeResponse.result == Authn.AuthResult.SUCCESS) {
                     updateUser(
                         new ExtMap().mput(Schema.UserIdentifiers.USER_ID, response.user.getId())
-                        .mput(Schema.UserKeys.PASSWORD, passwordStore.encode(newCredentials))
+                        .mput(Schema.UserKeys.PASSWORD,
+                            EnvelopePBE.encode(
+                                settings.get(Schema.Settings.PBE_ALGORITHM, String.class),
+                                settings.get(Schema.Settings.PBE_KEY_SIZE, Integer.class),
+                                settings.get(Schema.Settings.PBE_ITERATIONS, Integer.class),
+                                null,
+                                newCredentials
+                            )
+                        )
                         .mput(Schema.UserKeys.OLD_PASSWORD, response.user.getPassword())
                         .mput(Schema.UserKeys.PASSWORD_VALID_TO,
                             DateUtils.add(
@@ -173,7 +181,7 @@ public class Authentication implements Observer {
         String subject,
         String credentials,
         long loginTime
-    ) throws GeneralSecurityException, SQLException {
+    ) throws GeneralSecurityException, SQLException, IOException {
         AuthResponse response = null;
         Schema.User user = null;
 
@@ -191,7 +199,7 @@ public class Authentication implements Observer {
                     response == null &&
                     (
                         user.isNopasswd() ||
-                        PasswordStore.check(user.getPassword(), credentials)
+                        EnvelopePBE.check(user.getPassword(), credentials)
                     )
                 ) {
                     response = AuthResponse.positive(
@@ -421,7 +429,7 @@ public class Authentication implements Observer {
     public AuthResponse checkCredChange(
         Schema.User user,
         String newCredentials
-    ) throws GeneralSecurityException {
+    ) throws GeneralSecurityException, IOException {
         AuthResponse response = null;
         if (newCredentials.length() < settings.get(Schema.Settings.MIN_LENGTH, Integer.class)) {
             response = AuthResponse.negative(
@@ -438,12 +446,12 @@ public class Authentication implements Observer {
                 complexity.getUsage()
             );
         }
-        if (response == null && !user.getPassword().equals("") && PasswordStore.check(user.getPassword(), newCredentials)) {
+        if (response == null && !user.getPassword().equals("") && EnvelopePBE.check(user.getPassword(), newCredentials)) {
             response = AuthResponse.negative(Authn.AuthResult.GENERAL_ERROR, user, "new password already used");
         }
         if (response == null) {
             for (Schema.User.PasswordHistory oldPassword : user.getOldPasswords()) {
-                if (!user.getPassword().equals("") && PasswordStore.check(oldPassword.password, newCredentials)) {
+                if (!user.getPassword().equals("") && EnvelopePBE.check(oldPassword.password, newCredentials)) {
                     response = AuthResponse.negative(Authn.AuthResult.GENERAL_ERROR, user, "new password already used");
                 }
             }
@@ -457,13 +465,6 @@ public class Authentication implements Observer {
     @Override
     public void update(Observable o, Object arg) {
         this.settings = (ExtMap)arg;
-        this.passwordStore = new PasswordStore(
-            settings.get(Schema.Settings.PBE_ALGORITHM, String.class),
-            settings.get(Schema.Settings.PBE_KEY_SIZE, Integer.class),
-            settings.get(Schema.Settings.PBE_ITERATIONS, Integer.class),
-            null
-        );
-
         Matcher m = COMPLEXITY_PATTERN.matcher(settings.get(Schema.Settings.PASSWORD_COMPLEXITY, String.class));
         boolean ok = true;
         int expectedStart = 0;

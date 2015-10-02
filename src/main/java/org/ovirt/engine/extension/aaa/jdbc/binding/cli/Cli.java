@@ -42,7 +42,7 @@ import org.ovirt.engine.extension.aaa.jdbc.binding.Config;
 import org.ovirt.engine.extension.aaa.jdbc.binding.cli.parser.ArgumentsParser;
 import org.ovirt.engine.extension.aaa.jdbc.core.Authentication;
 import org.ovirt.engine.extension.aaa.jdbc.core.Authorization;
-import org.ovirt.engine.extension.aaa.jdbc.core.PasswordStore;
+import org.ovirt.engine.extension.aaa.jdbc.core.EnvelopePBE;
 import org.ovirt.engine.extension.aaa.jdbc.core.Schema;
 import org.ovirt.engine.extension.aaa.jdbc.core.datasource.DataSourceProvider;
 import org.ovirt.engine.extension.aaa.jdbc.core.datasource.Sql;
@@ -479,16 +479,18 @@ public class Cli {
                         }
                         if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
                             ExtMap settings = context.get(Schema.InvokeKeys.SETTINGS_RESULT, ExtMap.class);
-                            PasswordStore store = new PasswordStore(
-                                settings.get(Schema.Settings.PBE_ALGORITHM, String.class),
-                                settings.get(Schema.Settings.PBE_KEY_SIZE, Integer.class),
-                                settings.get(Schema.Settings.PBE_ITERATIONS, Integer.class),
-                                null
-                            );
                             context.get(Schema.InvokeKeys.ENTITY_KEYS, ExtMap.class)
                             .mput(
                                 Schema.UserKeys.PASSWORD,
-                                newPass != null ? store.encode(newPass) : null
+                                newPass == null ?
+                                null :
+                                EnvelopePBE.encode(
+                                    settings.get(Schema.Settings.PBE_ALGORITHM, String.class),
+                                    settings.get(Schema.Settings.PBE_KEY_SIZE, Integer.class),
+                                    settings.get(Schema.Settings.PBE_ITERATIONS, Integer.class),
+                                    null,
+                                    newPass
+                                )
                             ).mput(
                                 Schema.UserKeys.OLD_PASSWORD,
                                 user.getPassword()

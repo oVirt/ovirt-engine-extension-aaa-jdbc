@@ -6,6 +6,7 @@ Prerequisites
 
  - apache-commons-codec
  - apache-commons-lang
+ - jackson
  - ovirt-engine-extensions-api
  - postgresql-jdbc
  - slf4j-api
@@ -16,6 +17,8 @@ Setup dependencies
 $ mkdir -p lib
 $ cp /usr/share/java/commons-codec.jar \
 	/usr/share/java/commons-lang.jar \
+        /usr/share/java/jackson/jackson-core-asl.jar \
+        /usr/share/java/jackson/jackson-mapper-asl.jar \
 	/usr/share/java/ovirt-engine/ovirt-engine-extensions-api.jar \
 	/usr/share/java/postgresql-jdbc.jar \
 	/usr/share/java/slf4j/slf4j-api.jar \
