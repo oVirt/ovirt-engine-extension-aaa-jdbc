@@ -16,6 +16,7 @@
  */
 package org.ovirt.engine.extension.aaa.jdbc.binding.api;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -111,7 +112,7 @@ public class AuthnExtension implements Extension {
     }
 
     private void doAuth(ExtMap input, ExtMap output)
-        throws GeneralSecurityException, SQLException {
+        throws GeneralSecurityException, SQLException, IOException {
 
         Authentication.AuthResponse response = authentication.doAuth(
             input.get(Authn.InvokeKeys.USER, String.class),
