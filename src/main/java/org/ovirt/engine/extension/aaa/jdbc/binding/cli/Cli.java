@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -409,7 +408,7 @@ public class Cli {
                         context.put(
                             Schema.InvokeKeys.ENTITY_KEYS,
                             new ExtMap().mput(Schema.UserIdentifiers.USERNAME, context.get(ContextKeys.POSITIONAL))
-                                .mput(Schema.UserKeys.UNLOCK_TIME, new Date().getTime())
+                                .mput(Schema.UserKeys.UNLOCK_TIME, System.currentTimeMillis())
                         );
                         commands.get("_schema-modify").invoke(context);
                         context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
@@ -1226,14 +1225,14 @@ public class Cli {
                 (
                     args.get("account-valid-from") != null ?
                     DateUtils.fromISO((String) args.get("account-valid-from")) :
-                    new Date().getTime()
+                    System.currentTimeMillis()
                 )
             ).mput(
                 Schema.UserKeys.VALID_TO,
                 (
                     args.get("account-valid-to") != null?
                     DateUtils.fromISO((String)args.get("account-valid-to")) :
-                    DateUtils.add(new Date().getTime(), Calendar.YEAR, 200)
+                    DateUtils.add(System.currentTimeMillis(), Calendar.YEAR, 200)
                 )
             ).mput(
                 Schema.UserKeys.LOGIN_ALLOWED,
