@@ -538,6 +538,7 @@ public class Cli {
                      .mput(Global.SearchContext.IS_PRINCIPAL, true)
                      .mput(Global.SearchContext.RECURSIVE, false)
                      .mput(Global.SearchContext.WITH_GROUPS, true)
+                     .mput(Global.SearchContext.ALL_ATTRIBUTES, true)
                     );
 
                     commands.get("_search").invoke(context);
@@ -671,6 +672,7 @@ public class Cli {
                         .mput(Global.SearchContext.IS_PRINCIPAL, false)
                         .mput(Global.SearchContext.RECURSIVE, false)
                         .mput(Global.SearchContext.WITH_GROUPS, true)
+                        .mput(Global.SearchContext.ALL_ATTRIBUTES, true)
                     );
 
                     commands.get("_search").invoke(context);
@@ -933,6 +935,7 @@ public class Cli {
                         .mput(Global.SearchContext.IS_PRINCIPAL, isPrincipal)
                         .mput(Global.SearchContext.RECURSIVE, false)
                         .mput(Global.SearchContext.WITH_GROUPS, true)
+                        .mput(Global.SearchContext.ALL_ATTRIBUTES, true)
                     );
 
                     commands.get("_search").invoke(context);
@@ -1064,6 +1067,21 @@ public class Cli {
                     return "_show";
                 }
 
+                private String formatValue(Map.Entry<ExtKey, Object> entry) {
+                    if (entry.getValue() == null) {
+                        return "";
+                    } else if (Schema.UserKeys.PASSWORD_VALID_TO.equals(entry.getKey()) ||
+                            Schema.UserKeys.SUCCESSFUL_LOGIN.equals(entry.getKey()) ||
+                            Schema.UserKeys.UNLOCK_TIME.equals(entry.getKey()) ||
+                            Schema.UserKeys.UNSUCCESSFUL_LOGIN.equals(entry.getKey()) ||
+                            Schema.UserKeys.VALID_FROM.equals(entry.getKey()) ||
+                            Schema.UserKeys.VALID_TO.equals(entry.getKey())) {
+                        return DateUtils.toISO((Long) entry.getValue());
+                    } else {
+                        return entry.getValue().toString();
+                    }
+                }
+
                 @Override
                 public void invoke(ExtMap context, Map<String, Object> args) {
                     Properties templates = loadPropertiesFromJar("entity-templates.properties");
@@ -1091,7 +1109,7 @@ public class Cli {
                         for (Map.Entry<ExtKey, Object> entry : result.entrySet()) {
                             out = out.replaceAll(
                                 "@" + entry.getKey().getUuid().getUuid().toString() + "@",
-                                entry.getValue().toString()
+                                formatValue(entry)
                             );
                         }
                         addContextMessage(context, false, out);

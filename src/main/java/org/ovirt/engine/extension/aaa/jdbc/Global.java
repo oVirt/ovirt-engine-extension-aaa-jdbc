@@ -13,6 +13,7 @@ public class Global {
         public static final ExtKey WITH_GROUPS = new ExtKey("AAA_JDBC_WITH_GROUPS", Boolean.class, "2161fc6c-9c83-4865-b331-39189d3858ea");
         public static final ExtKey RECURSIVE = new ExtKey("AAA_JDBC_RECURSIVE", Boolean.class, "3dbd6bcc-64c3-4675-aadb-9afdd6ab6966");
         public static final ExtKey PAGE_SIZE = new ExtKey("AAA_JDBC_PAGE_SIZE", Integer.class, "e0fe28ad-24c0-4d29-8868-5c639701f4b5");
+        public static final ExtKey ALL_ATTRIBUTES = new ExtKey("AAA_JDBC_RETURN_ALL_ATTRIBUTES", Boolean.class, "2460d328-f7b0-4da5-9621-6d3051dbd433");
     }
 
     public static class InvokeKeys {

@@ -302,6 +302,16 @@ public class Schema {
             next.put(Authz.PrincipalRecord.TITLE, rs.getString("user_title"));
             next.putIfAbsent(Authz.PrincipalRecord.TITLE, "");
             next.put(Authz.PrincipalRecord.GROUPS, new ArrayList<ExtMap>());
+            if (context.get(Global.SearchContext.ALL_ATTRIBUTES, Boolean.class, false)) {
+                next.put(UserKeys.DISABLED, rs.getBoolean("user_disabled"));
+                next.put(UserKeys.UNLOCK_TIME, rs.getTimestamp("user_unlock_time").getTime());
+                next.put(UserKeys.VALID_FROM, rs.getTimestamp("user_valid_from").getTime());
+                next.put(UserKeys.VALID_TO, rs.getTimestamp("user_valid_to").getTime());
+                next.put(UserKeys.NOPASS, rs.getBoolean("user_nopasswd"));
+                next.put(UserKeys.SUCCESSFUL_LOGIN, rs.getTimestamp("user_last_successful_login").getTime());
+                next.put(UserKeys.UNSUCCESSFUL_LOGIN, rs.getTimestamp("user_last_unsuccessful_login").getTime());
+                next.put(UserKeys.PASSWORD_VALID_TO, rs.getTimestamp("user_password_valid_to").getTime());
+            }
         }
 
         if (context.get(Global.SearchContext.WITH_GROUPS, Boolean.class)) {
