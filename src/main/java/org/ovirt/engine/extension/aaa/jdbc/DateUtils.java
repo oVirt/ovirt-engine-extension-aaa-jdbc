@@ -34,7 +34,7 @@ public class DateUtils {
      */
     public static String toTimestamp(long time) {
         return String.format(
-            "to_timestamp(%d::double precision / 1000) AT TIME ZONE 'UTC'",
+            "to_timestamp(%d::double precision / 1000)",
             time
         );
     }
