@@ -160,6 +160,9 @@ public class AuthzExtension implements Extension {
             ).mput(
                 Global.SearchContext.PAGE_SIZE,
                 1
+            ).mput(
+                Global.SearchContext.ALL_ATTRIBUTES,
+                false
             )
         );
         output.put(Authz.InvokeKeys.PRINCIPAL_RECORD,
@@ -194,6 +197,9 @@ public class AuthzExtension implements Extension {
                     ).mput(
                         Global.SearchContext.RECURSIVE,
                         (flags & Authz.QueryFlags.RESOLVE_GROUPS_RECURSIVE) != 0
+                    ).mput(
+                        Global.SearchContext.ALL_ATTRIBUTES,
+                        false
                     )
                 )
             ).mput(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
