@@ -96,4 +96,8 @@ make %{make_common_opts} install-no-build DESTDIR="%{buildroot}"
 %{_datadir}/%{name}/
 %{_sysconfdir}/ovirt-engine/engine.conf.d/50-%{name}.conf
 %{_bindir}/ovirt-aaa-jdbc-tool
+
 %changelog
+* Tue Oct 06 2015 Martin Perina <mperina@redhat.com> 1.0.0-1
+- Initial release
+
