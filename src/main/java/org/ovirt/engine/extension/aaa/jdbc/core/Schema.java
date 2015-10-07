@@ -689,7 +689,7 @@ public class Schema {
         SEARCH_KEYS.put(Authz.GroupRecord.NAMESPACE, "namespace");
         SEARCH_KEYS.put(Authz.GroupRecord.ID, "g.uuid");
         SEARCH_KEYS.put(Authz.GroupRecord.NAME, "g.name");
-        SEARCH_KEYS.put(Authz.GroupRecord.DISPLAY_NAME, "ga_nm.value");
+        SEARCH_KEYS.put(Authz.GroupRecord.DISPLAY_NAME, "ga_dn.value");
         SEARCH_KEYS.put(AuthzInternal.GROUP_DESCRIPTION, "ga_ds.value");
 
         OPERATORS.put(Authz.QueryFilterOperator.AND, "AND");
