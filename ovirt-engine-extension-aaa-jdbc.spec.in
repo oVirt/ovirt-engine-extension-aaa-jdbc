@@ -11,8 +11,8 @@
 %global slf4j slf4j-eap6
 # On RHEL 6 we need to use Jackson from EAP6 repo
 %global jackson_available 0
-%global jackson_core_asl_jar codehaus-jackson-core-asl/jackson-core-asl
-%global jackson_mapper_asl_jar codehaus-jackson-mapper-asl/jackson-mapper-asl
+%global jackson_core_asl_jar codehaus-jackson/jackson-core-asl
+%global jackson_mapper_asl_jar codehaus-jackson/jackson-mapper-asl
 %endif
 %else
 %global java_devel java-devel >= 1.7.0
