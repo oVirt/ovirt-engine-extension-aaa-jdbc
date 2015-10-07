@@ -39,7 +39,8 @@ import org.ovirt.engine.extension.aaa.jdbc.DateUtils;
 import org.ovirt.engine.extension.aaa.jdbc.Formatter;
 import org.ovirt.engine.extension.aaa.jdbc.Global;
 import org.ovirt.engine.extension.aaa.jdbc.binding.Config;
-import org.ovirt.engine.extension.aaa.jdbc.binding.cli.parser.ArgumentsParser;
+import org.ovirt.engine.extension.aaa.jdbc.binding.cli.command.Command;
+import org.ovirt.engine.extension.aaa.jdbc.binding.cli.command.GroupManageShowCommand;
 import org.ovirt.engine.extension.aaa.jdbc.core.Authentication;
 import org.ovirt.engine.extension.aaa.jdbc.core.Authorization;
 import org.ovirt.engine.extension.aaa.jdbc.core.EnvelopePBE;
@@ -56,149 +57,13 @@ public class Cli {
         SENSISTIVE_DATA.add("config.datasource.dbpassword");
     }
 
-    /**
-     * Commands are nested. example: "PROGRAM_NAME user add mike" will invoke:
-     * root, root.user and root.user.add.
-     */
-    private static abstract class Command {
-        abstract String getName();
-        List<String> getSubModules() {
-            return Collections.emptyList();
-        }
-        /** is a positional argument expected before the module options. */
-        boolean entityNameExpected() {
-            return false;
-        }
-        /**
-         * This method is responsible for:
-         * - parsing preceding positional argument expected before the keyword arguments according to getPosCount().
-         * - parsing keyword arguments according to getName()
-         * if getSubModules().size() > 1:
-         * - parsing name of next expected command and invoking it
-         */
-        abstract void invoke(ExtMap context, Map<String, Object> args);
-
-        void invoke(ExtMap context) {
-            if (entityNameExpected()) { // e.g user add 'mike'
-                putNextPositional(context);
-                LOG.trace("entity name is: {}", context.get(ContextKeys.POSITIONAL));
-            }
-            Map<String, Object> args = null;
-
-            if (!getName().startsWith("_")) { // get keyword args
-                args = nextArgs(context, context.containsKey(ContextKeys.EXIT_STATUS));
-            }
-
-            if (!context.containsKey(ContextKeys.EXIT_STATUS)) { // invoke command
-                LOG.trace("Invoking: {} with args: {}", getName(), args);
-
-                invoke(context, args);
-            }
-
-            if (!context.containsKey(ContextKeys.EXIT_STATUS) && getSubModules().size() > 0) { // get next
-                putNextPositional(context);
-                String name = context.get(ContextKeys.POSITIONAL, String.class);
-                LOG.trace("next: {}", name);
-
-                if (
-                    !this.getSubModules().contains(name)
-                ) {
-                    addContextMessage(context, true,
-                         Formatter.format(
-                             "{}. {}\n",
-                             (
-                                 name != null ?
-                                 "unexpected command: " + name :
-                                 "no command provided"
-                             ),
-                             "options: " + StringUtils.join(getSubModules(), ", ") + ", help")
-                    );
-                    context.putIfAbsent(ContextKeys.EXIT_STATUS, ARGUMENT_PARSING_ERROR);
-                }
-                if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
-                    context.remove(ContextKeys.POSITIONAL);
-                    commands.get(this.getName() + "-" + name).invoke(context);
-                }
-            }
-        }
-
-        private void putNextPositional(ExtMap context) {
-            String name;
-            @SuppressWarnings("unchecked")
-            List<String> tail = context.get(ContextKeys.TAIL, List.class);
-            if (tail.size() > 0 && !tail.get(0).startsWith("--")) {
-                name = tail.remove(0);
-                context.put(ContextKeys.POSITIONAL, name);
-                context.put(ContextKeys.TAIL, tail);
-            } else {
-                context.put(ContextKeys.EXIT_STATUS, ARGUMENT_PARSING_ERROR);
-            }
-        }
-
-        private Map<String, Object> nextArgs(ExtMap context, boolean showHelp) {
-            Map<String, String> contextSubstitutions = new HashMap<>();
-            contextSubstitutions.put("@ENGINE_ETC@", System.getProperty("org.ovirt.engine.aaa.jdbc.engineEtc"));
-            contextSubstitutions.put("@PROGRAM_NAME@", System.getProperty("org.ovirt.engine.aaa.jdbc.programName"));
-            contextSubstitutions.put("@MODULE_LIST@", StringUtils.join(this.getSubModules(), "\n  ") + "\n  help");
-
-            Map<String, Object> parsed;
-            ArgumentsParser argumentsParser = new ArgumentsParser(
-                Cli.class.getResourceAsStream("arguments.properties"),
-                this.getName()
-            );
-            argumentsParser.getSubstitutions().putAll(contextSubstitutions);
-            @SuppressWarnings("unchecked")
-            List<String> tail = context.get(ContextKeys.TAIL, List.class);
-            argumentsParser.parse(tail); // updates tail.
-            parsed = argumentsParser.getParsedArgs();
-
-            if (showHelp || !context.containsKey(ContextKeys.EXIT_STATUS)) {
-
-                if (showHelp || (Boolean)parsed.get("help") ||  (tail.size() > 0 && tail.get(0).equals("help"))) {
-                    addContextMessage(context, false, argumentsParser.getUsage());
-                    context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
-                } else {
-                    List<Throwable> errors = argumentsParser.getErrors();
-                    if (errors.size() > 0) {
-                        for (Throwable thr: errors) {
-                            context.get(ContextKeys.THROWABLES, List.class).add(thr);
-                            context.get(ContextKeys.ERR_MESSAGES, List.class).add(thr.getMessage());
-                        }
-                        context.mput(ContextKeys.EXIT_STATUS, ARGUMENT_PARSING_ERROR);
-                    }
-                }
-            }
-            return parsed;
-        }
-    }
-
-    private static class ContextKeys {
-        private static final ExtKey LOGGING_STARTED = new ExtKey("AAA_JDBC_CLI_LOG_SETUP", Boolean.class, "038a76ae-6845-4f3a-a228-8373970b0ea0");
-        private static final ExtKey EXIT_STATUS = new ExtKey("AAA_JDBC_CLI_EXIT_STATUS", Integer.class, "803cc6b3-e1de-45e2-9173-69436cfa7cb7");
-
-        /** ERR_MESSAGES and OUT_MESSAGES are displayed before exit regardless of exit status */
-        private static final ExtKey ERR_MESSAGES = new ExtKey("AAA_JDBC_CLI_ERROR_MESSAGES", List/**<String.class>*/.class, "b8b7aed5-2e51-4d4f-a09e-26f9aa7d65ce");
-        private static final ExtKey OUT_MESSAGES = new ExtKey("AAA_JDBC_CLI_OUTPUT_MESSAGE", List/**<String.class>*/.class, "7a401ce3-e4d9-49b4-b9ef-0680b7f1031d");
-
-        private static final ExtKey POSITIONAL = new ExtKey("AAA_JDBC_CLI_POSITIONAL", String.class, "0b3389bf-93b1-4a5a-bb56-361afa32dff3");
-
-        private static final ExtKey THROWABLES = new ExtKey("AAA_JDBC_CLI_THROWABLE", Collection/**<Throwable.class>*/.class, "a2cc22b4-27f5-4551-b507-9e409697c340");
-        /** suffix of cli parameters to parse */
-        private static final ExtKey TAIL = new ExtKey("AAA_JDBC_CLI_TAIL", List/*<String>*/.class, "49deb728-8aae-4c93-a491-91642fa304c2");
-
-        private static final ExtKey SEARCH_FILTER = new ExtKey("AAA_JDBC_CLI_SEARCH_FILTER", String.class, "2bbd200f-4362-436b-840f-dafe7c968e1e");
-        private static final ExtKey SEARCH_RESULT = new ExtKey("AAA_JDBC_CLI_SEARCH_RESULT", Collection/*<ExtMap>*/.class, "b750f37e-fae5-4126-9516-8a62d528eb05");
-
-        private static final ExtKey SHOW_TEMPLATE = new ExtKey("AAA_JDBC_CLI_SHOW_TEMPLATE", String.class, "32f09d46-aa79-474b-99b6-a8e90716d1b5");
-    }
-
     /** Exit Statuses */
-    private static final int SUCCESS = 0;
-    private static final int GENERAL_ERROR = 1;
-    private static final int ARGUMENT_PARSING_ERROR = 2;
-    private static final int SQL_ERROR = 3;
-    private static final int NOT_FOUND = 4;
-    private static final int ALREADY_EXISTS = 5;
+    public static final int SUCCESS = 0;
+    public static final int GENERAL_ERROR = 1;
+    public static final int ARGUMENT_PARSING_ERROR = 2;
+    public static final int SQL_ERROR = 3;
+    public static final int NOT_FOUND = 4;
+    public static final int ALREADY_EXISTS = 5;
 
 
     /** Search */
@@ -208,6 +73,12 @@ public class Cli {
      * To print output:
      */
     private static final Map<ExtUUID, String> ENTITY_NAMES = new HashMap<>();
+
+    //Commands which are defined in their own class (meaning not statically here
+    //in Cli.java), may need to access this map.
+    public static Map<String, Command> getCommands() {
+        return commands;
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(Cli.class);
 
@@ -322,7 +193,8 @@ public class Cli {
                     return "root-user-add";
                 }
 
-                boolean entityNameExpected() {
+                @Override
+                public boolean entityNameExpected() {
                     return true; // username expected
                 }
 
@@ -350,7 +222,8 @@ public class Cli {
                     return "root-user-edit";
                 }
 
-                boolean entityNameExpected() {
+                @Override
+                public boolean entityNameExpected() {
                     return true; // username expected
                 }
 
@@ -371,7 +244,8 @@ public class Cli {
                     return "root-user-delete";
                 }
 
-                boolean entityNameExpected() {
+                @Override
+                public boolean entityNameExpected() {
                     return true; // username expected
                 }
 
@@ -397,7 +271,8 @@ public class Cli {
                     return "root-user-unlock";
                 }
 
-                boolean entityNameExpected() {
+                @Override
+                public boolean entityNameExpected() {
                     return true; // username expected
                 }
 
@@ -659,34 +534,7 @@ public class Cli {
 
                 @Override
                 public void invoke(ExtMap context, Map<String, Object> args) {
-                    context.put(
-                        ContextKeys.SEARCH_FILTER,
-                        Formatter.format(
-                            "{} = {}",
-                            Schema.SEARCH_KEYS.get(Authz.GroupRecord.NAME),
-                            Formatter.escapeString(context.get(ContextKeys.POSITIONAL, String.class))
-                        )
-                    );
-                    context.mput(Global.InvokeKeys.SEARCH_CONTEXT,
-                        new ExtMap().mput(Global.SearchContext.PAGE_SIZE, 1)
-                        .mput(Global.SearchContext.IS_PRINCIPAL, false)
-                        .mput(Global.SearchContext.RECURSIVE, false)
-                        .mput(Global.SearchContext.WITH_GROUPS, true)
-                        .mput(Global.SearchContext.ALL_ATTRIBUTES, true)
-                    );
-
-                    commands.get("_search").invoke(context);
-                    if (
-                        context.get(ContextKeys.SEARCH_RESULT) == null ||
-                        context.get(ContextKeys.SEARCH_RESULT, Collection.class).size() == 0
-                    ) {
-                        addContextMessage(context, true, Formatter.format(
-                            "group {} not found",
-                            context.get(ContextKeys.POSITIONAL)
-                        ));
-                        context.put(ContextKeys.EXIT_STATUS, NOT_FOUND);
-                    }
-
+                    getGroup(context);
                     if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
                         commands.get("_show").invoke(context);
                     }
@@ -710,11 +558,12 @@ public class Cli {
             },
             new Command() {
                 @Override
-                String getName() {
+                public String getName() {
                     return "root-group-manage-useradd";
                 }
 
-                boolean entityNameExpected() {
+                @Override
+                public boolean entityNameExpected() {
                     return true; // username expected
                 }
 
@@ -754,11 +603,12 @@ public class Cli {
             },
             new Command() {
                 @Override
-                String getName() {
+                public String getName() {
                     return "root-group-manage-groupadd";
                 }
 
-                boolean entityNameExpected() {
+                @Override
+                public boolean entityNameExpected() {
                     return true; // username expected
                 }
 
@@ -800,29 +650,15 @@ public class Cli {
 
                 }
             },
+            new GroupManageShowCommand(),
             new Command() {
                 @Override
                 public String getName() {
-                    return "root-group-manage-show";
-                }
-
-                public boolean entityNameExpected() {
-                    return true; // username expected
-                }
-
-                @Override
-                public void invoke(ExtMap context, Map<String, Object> args) {
-                    throw new RuntimeException("TBD");
-                }
-            },
-            new Command() {
-                @Override
-                String getName() {
                     return "root-settings";
                 }
 
                 @Override
-                List<String> getSubModules() {
+                public List<String> getSubModules() {
                     return Arrays.asList("show", "set");
                 }
 
@@ -833,7 +669,7 @@ public class Cli {
             },
             new Command() {
                 @Override
-                String getName() {
+                public String getName() {
                     return "root-settings-show";
                 }
 
@@ -860,7 +696,7 @@ public class Cli {
             },
             new Command() {
                 @Override
-                String getName() {
+                public String getName() {
                     return "root-settings-set";
                 }
 
@@ -1034,7 +870,7 @@ public class Cli {
             },
             new Command() {
                 @Override
-                String getName() {
+                public String getName() {
                     return "_search";
                 }
 
@@ -1453,4 +1289,34 @@ public class Cli {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded, Charset.forName("UTF-8"));
 }
+
+    public static void getGroup(ExtMap context) {
+        context.put(
+            ContextKeys.SEARCH_FILTER,
+            Formatter.format(
+                "{} = {}",
+                Schema.SEARCH_KEYS.get(Authz.GroupRecord.NAME),
+                Formatter.escapeString(context.get(ContextKeys.POSITIONAL, String.class))
+            )
+        );
+        context.mput(Global.InvokeKeys.SEARCH_CONTEXT,
+            new ExtMap().mput(Global.SearchContext.PAGE_SIZE, 1)
+            .mput(Global.SearchContext.IS_PRINCIPAL, false)
+            .mput(Global.SearchContext.RECURSIVE, false)
+            .mput(Global.SearchContext.WITH_GROUPS, true)
+            .mput(Global.SearchContext.ALL_ATTRIBUTES, true)
+        );
+
+        commands.get("_search").invoke(context);
+        if (
+            context.get(ContextKeys.SEARCH_RESULT) == null ||
+            context.get(ContextKeys.SEARCH_RESULT, Collection.class).size() == 0
+        ) {
+            addContextMessage(context, true, Formatter.format(
+                "group {} not found",
+                context.get(ContextKeys.POSITIONAL)
+            ));
+            context.put(ContextKeys.EXIT_STATUS, NOT_FOUND);
+        }
+    }
 }
