@@ -39,6 +39,7 @@ import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
@@ -138,6 +139,8 @@ public class Schema {
     }
 
     public static class GroupKeys {
+        /** Database ID of the group. **/
+        public static final ExtKey DB_ID = new ExtKey("CATALOG_GROUP_DB_ID", Integer.class, "30f9b8e8-66bd-4744-ba56-b1457e38d214");
         public static final ExtKey UUID = new ExtKey("CATALOG_GROUP_ID", String.class, "6cb2a99b-5597-4335-8a88-9cd4309f778d");
         public static final ExtKey NEW_NAME = new ExtKey("CATALOG_GROUP_NEW_NAME", String.class, "81c2bbfb-189a-485d-8330-dd46cfd14f2e");
     }
@@ -346,6 +349,9 @@ public class Schema {
             next.put(AuthzInternal.GROUP_DESCRIPTION, rs.getString("group_description"));
             next.putIfAbsent(AuthzInternal.GROUP_DESCRIPTION, "");
             next.put(Authz.GroupRecord.GROUPS, new ArrayList<ExtMap>());
+            if (context.get(Global.SearchContext.ALL_ATTRIBUTES, Boolean.class, false)) {
+                next.put(GroupKeys.DB_ID, rs.getInt("group_id"));
+            }
         }
         if (context.get(Global.SearchContext.WITH_GROUPS, Boolean.class)) {
             String nested = rs.getString("group_group_id");
