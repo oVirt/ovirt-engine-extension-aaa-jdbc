@@ -26,6 +26,8 @@ import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
@@ -943,9 +945,14 @@ public class Cli {
                                 ) :
                                 providedTemplate;
                         for (Map.Entry<ExtKey, Object> entry : result.entrySet()) {
-                            out = out.replaceAll(
-                                "@" + entry.getKey().getUuid().getUuid().toString() + "@",
-                                formatValue(entry)
+                            Matcher m = Pattern.compile(
+                                String.format(
+                                    "@%s@",
+                                    entry.getKey().getUuid().getUuid()
+                                )
+                            ).matcher(out);
+                            out = m.replaceAll(
+                                m.quoteReplacement(formatValue(entry))
                             );
                         }
                         addContextMessage(context, false, out);
