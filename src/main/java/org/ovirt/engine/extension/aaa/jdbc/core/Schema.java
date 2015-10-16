@@ -365,7 +365,7 @@ public class Schema {
                 group.put(AuthzInternal.GROUP_DESCRIPTION, rs.getString("group_group_description"));
                 group.putIfAbsent(AuthzInternal.GROUP_DESCRIPTION, "");
 
-                next.get(Authz.PrincipalRecord.GROUPS, ArrayList.class).add(group);
+                next.get(Authz.GroupRecord.GROUPS, ArrayList.class).add(group);
             }
         }
     }
