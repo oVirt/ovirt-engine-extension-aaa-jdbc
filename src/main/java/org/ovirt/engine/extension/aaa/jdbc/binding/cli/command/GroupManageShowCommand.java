@@ -35,19 +35,20 @@ public class GroupManageShowCommand extends Command {
         try {
             //Load Group fields into a map.
             ExtMap resultsMap = getGroup(context);
+            if (resultsMap != null) {
+                //Get group name, uuid and database-id (the latter is necessary for joins).
+                String groupName = (String) resultsMap.get(Authz.GroupRecord.NAME);
+                String groupUuid = (String) resultsMap.get(Authz.GroupRecord.ID);
+                Integer groupDbId = (Integer) resultsMap.get(Schema.GroupKeys.DB_ID);
 
-            //Get group name, uuid and database-id (the latter is necessary for joins).
-            String groupName = (String)resultsMap.get(Authz.GroupRecord.NAME);
-            String groupUuid = (String)resultsMap.get(Authz.GroupRecord.ID);
-            Integer groupDbId = (Integer)resultsMap.get(Schema.GroupKeys.DB_ID);
+                //get users and groups associated with this group.
+                DataSource dataSource = context.get(InvokeKeys.DATA_SOURCE, DataSource.class);
+                List<String> groups = getMemberGroups(groupDbId, dataSource);
+                List<String> users = getMemberUsers(groupDbId, dataSource);
 
-            //get users and groups associated with this group.
-            DataSource dataSource = context.get(InvokeKeys.DATA_SOURCE, DataSource.class);
-            List<String> groups = getMemberGroups(groupDbId, dataSource);
-            List<String> users = getMemberUsers(groupDbId, dataSource);
-
-            //display the results
-            show(context, groupName, groupUuid, groups, users);
+                //display the results
+                show(context, groupName, groupUuid, groups, users);
+            }
         } catch (SQLException e) {
             context.put(ContextKeys.EXIT_STATUS, Cli.SQL_ERROR);
             addContextMessage(context, true, e.getMessage());
@@ -59,12 +60,11 @@ public class GroupManageShowCommand extends Command {
      * Fetches the group from the database and fills its fields in a map.
      */
     private ExtMap getGroup(ExtMap context) {
+        ExtMap resultsMap = null;
         Cli.getGroup(context);
-        if (context.get(ContextKeys.SEARCH_RESULT)==null || context.get(ContextKeys.SEARCH_RESULT, Collection.class).isEmpty()) {
-            addContextMessage(context, true, Formatter.format("group {} not found", context.get(ContextKeys.POSITIONAL)));
-            context.put(ContextKeys.EXIT_STATUS, Cli.NOT_FOUND);
+        if (context.get(ContextKeys.SEARCH_RESULT) != null && !context.get(ContextKeys.SEARCH_RESULT, Collection.class).isEmpty()) {
+            resultsMap = (ExtMap) (context.get(ContextKeys.SEARCH_RESULT, Collection.class).iterator().next());
         }
-        ExtMap resultsMap = (ExtMap)(context.get(ContextKeys.SEARCH_RESULT, Collection.class).iterator().next());
         return resultsMap;
     }
 
