@@ -1,4 +1,26 @@
-To configure a new profile which uses aaa-jdbc extension please execute
+I. Introduction
+
+oVirt aaa-jdbc extension is a part of oVirt since 3.6.0. By default 'internal'
+profile (sometimes also called domain) is provided by aaa-jdbc extension in
+oVirt 3.6 (during upgrade from oVirt 3.5 'internal' profile is converted from
+legacy provider to the new aaa-jdbc provider).
+
+It's also possible to configure additional profiles provided by aaa-jdbc, but
+configuration and upgrade of these profiles have to be done manually (see
+below).
+
+
+
+II. Configuration of 'internal' aaa-jdbc profile
+
+Configuration is completely handled by engine-setup, there are no manual steps
+required.
+
+
+
+III. Configuration of a new custom aaa-jdbc profile
+
+To configure a new custom profile which uses aaa-jdbc extension please execute
 following steps:
 
 1. Setup database for aaa-jdbc extension
@@ -11,7 +33,6 @@ following steps:
         encoding 'UTF8' lc_collate 'en_US.UTF-8' lc_ctype 'en_US.UTF-8';
    __EOF__
    "
-
 
 2. Configure PostgreSQL
 
@@ -28,7 +49,6 @@ following steps:
 
    After that please restart postgresql service.
 
-
 3. Populate database for aaa-jdbc extension
 
    Please replace DB_HOST, DB_NAME, DB_USER and DB_PASSWORD with
@@ -41,7 +61,6 @@ following steps:
        -d DB_NAME \
        -u DB_USER \
        -c apply
-
 
 4. Setup AAA profile
 
@@ -61,10 +80,8 @@ following steps:
    Edit created PROFILE*.properties files and replace variables surrounded by
    @ with real values.
 
-
 5. Restart ovirt-engine service and check /var/log/ovirt-engine/engine.log
    to see if extension is initialized successfully according to PROFILE.
-
 
 6. Setup users and groups
 
@@ -75,7 +92,74 @@ following steps:
          --db-config=/etc/ovirt-engine/aaa/PROFILE.properties \
          OPTIONS
 
-
 7. Login to webadmin using existing administrator account and assign desired
    permissions to users/groups defined in your PROFILE
+
+
+
+IV. Upgrading 'internal' profile
+
+ATTENTION: aaa-jdbc extension is not upgraded automatically during oVirt
+engine upgrade and it needs to be upgraded manually!
+
+When you want to upgrade aaa-jdbc extension please do following steps:
+
+1. Upgrade oVirt engine
+     For details please take a look at at oVirt Administration Guide.
+
+2. Stop oVirt engine service
+
+     EL6:          service ovirt-engine stop
+     EL7/Fedora:   systemctl stop ovirt-engine
+
+3. Upgrade aaa-jdbc package
+
+     EL6/EL7:      yum update ovirt-engine-extension-aaa-jdbc
+     Fedora:       dnf update ovirt-engine-extension-aaa-jdbc
+
+4. Upgrade aaa-jdbc database for 'internal' profile by executing
+
+     engine-setup
+
+If your setup doesn't contain custom aaa-jdbc profiles, upgrade process is
+finished.
+
+If you setup contains also custom aaa-jdbc profiles (more info in chapter III.
+Configuration of a new custom aaa-jdbc profile), please continue with steps
+described in chapter V. Upgrading custom profiles.
+
+
+
+V. Upgrading custom profiles
+
+Before proceeding please make sure that you have already finished upgrade of
+'internal' profile described in chapter IV. Upgrading 'internal' profile.
+
+To upgrade custom aaa-jdbc profiles please do following steps:
+
+1. Stop oVirt engine service
+
+     EL6:          service ovirt-engine stop
+     EL7/Fedora:   systemctl stop ovirt-engine
+
+2. For each existing custom aaa-jdbc profile please execute following command:
+
+     PGPASSWORD="DB_PASSWORD" \
+       /usr/share/ovirt-engine-extension-aaa-jdbc/dbscripts/schema.sh \
+       -s DB_HOST \
+       -p DB_PORT \
+       -d DB_NAME \
+       -u DB_USER \
+       -e DB_SCHEMA \
+       -c apply
+
+   Please replace DB_HOST, DB_NAME, DB_USER, DB_PASSWORD and DB_SCHEMA (if
+   profile was configured with different than 'public' schema) with values
+   that are specified in database configuration for each profile (usually
+   located in /etc/ovirt-engine/aaa/PROFILE_NAME.properties).
+
+3. Start oVirt engine service
+
+     EL6:          service ovirt-engine start
+     EL7/Fedora:   systemctl start ovirt-engine
 
