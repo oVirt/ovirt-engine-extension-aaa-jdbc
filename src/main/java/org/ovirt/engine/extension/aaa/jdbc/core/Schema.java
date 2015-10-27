@@ -64,6 +64,13 @@ public class Schema {
         public static final ExtUUID USER = new ExtUUID("AAA_JDBC_USER", "74cead40-a5f4-41b2-b74d-c0f961a6e66e");
         /** Group  */
         public static final ExtUUID GROUP = new ExtUUID();
+
+        /** Group type members of Group */
+        public static final ExtUUID GROUP_MEMBERS_OF_GROUP = new ExtUUID(
+                "AAA_JDBC_GROUP_MEMBERS_OF_GROUP",
+                "7dbb74df-9107-49a6-9487-bcee8a1c52d5"
+        );
+
         /** A cursor for a SEARCH_PAGE */
         public static final ExtUUID CURSOR = new ExtUUID("AAA_JDBC_CURSOR", "ce383ef3-1f3f-41c2-95e0-d9cc4ec5fbb6");
         /**
@@ -92,6 +99,7 @@ public class Schema {
         public static final ExtKey MODIFICATION_TYPE = new ExtKey("AAA_JDBC_MODIFICATION_TYPE", Integer.class, "c321aedb-ae00-4ec8-a478-32426da7d4d2");
         public static final ExtKey USER_RESULT = new ExtKey("AAA_JDBC_USER_RESULT", User.class, "4012d9b1-735a-43eb-9bc1-c065c9638d70");
         public static final ExtKey SETTINGS_RESULT = new ExtKey("AAA_JDBC_SETTINGS_RESULT", ExtMap.class, "966f32e0-7154-4736-8890-a05a694a9cd0");
+        public static final ExtKey GROUP_MEMBERS_OF_GROUP_RESULT = new ExtKey("AAA_JDBC_GROUP_MEMBERS_OF_GROUP_RESULT", List.class, "5e8d3e48-ed12-407b-95e2-a18c6bccb5d4");
         public static final ExtKey CURSOR_RESULT = new ExtKey("AAA_JDBC_CURSOR_RESULT", Sql.Cursor.class, "016aaa8b-8ae2-4220-a277-8197e4eb5405");
         /** SEARCH_PAGE_RESULT is null if there are no results */
         public static final ExtKey SEARCH_PAGE_RESULT = new ExtKey("AAA_JDBC_PRINCIPAL_RESULT", Collection /**<ExtMap.class*/.class, "7a5c3151-1160-4668-b34c-0062997fc7af");
@@ -233,6 +241,32 @@ public class Schema {
                 );
             }
             return settings.mput(Settings.SETTING_DESCRIPTIONS, descriptions);
+        }
+    }
+
+    private static class GroupMembersOfGroupResolver implements Sql.ResultsResolver<List<ExtMap>> {
+        @Override
+        public List<ExtMap> resolve(ResultSet rs, ExtMap context) throws SQLException {
+            List<ExtMap> groupRecords = new ArrayList<>();
+            while (rs.next()) {
+                ExtMap groupRecord = new ExtMap();
+                groupRecord.put(Authz.GroupRecord.NAMESPACE, rs.getString("namespace"));
+                groupRecord.put(Authz.GroupRecord.ID, rs.getString("group_uuid"));
+                groupRecord.put(Authz.GroupRecord.NAME, rs.getString("group_name"));
+                groupRecord.put(Authz.GroupRecord.DISPLAY_NAME, rs.getString("group_display_name"));
+                groupRecord.putIfAbsent(Authz.GroupRecord.DISPLAY_NAME, "");
+                groupRecord.put(AuthzInternal.GROUP_DESCRIPTION, rs.getString("group_description"));
+                groupRecord.putIfAbsent(AuthzInternal.GROUP_DESCRIPTION, "");
+                groupRecord.put(Authz.GroupRecord.GROUPS, new ArrayList<ExtMap>());
+                if (context.get(Global.SearchContext.ALL_ATTRIBUTES, Boolean.class, false)) {
+                    groupRecord.put(GroupKeys.DB_ID, rs.getInt("group_id"));
+                }
+                if (StringUtils.isNotBlank(groupRecord.<String>get(Authz.GroupRecord.ID))) {
+                    // due to "select '*' as namespace" we receive also empty records, so we need to ignore them
+                    groupRecords.add(groupRecord);
+                }
+            }
+            return groupRecords;
         }
     }
 
@@ -642,6 +676,7 @@ public class Schema {
     private static final String GET_USER;
     private static final String SEARCH_PRINCIPAL;
     private static final String SEARCH_GROUP;
+    private static final String GROUP_MEMBERS_OF_GROUP;
     /** SELECT field names for queries exposed for Authz.QueryFilterRecord.KEY */
     public static final Map<ExtKey, String> SEARCH_KEYS = new HashMap<>();
     public static final Map<Integer, String> OPERATORS = new HashMap<>();
@@ -650,6 +685,7 @@ public class Schema {
 
     private static final Sql.ResultsResolver<ExtMap> SETTINGS_RESOLVER = new SettingsResolver();
     private static final Sql.ResultsResolver<User> USER_RESOLVER = new User.UserResolver();
+    private static final Sql.ResultsResolver<List<ExtMap>> GROUP_MEMBERS_OF_GROUP_RESOLVER = new GroupMembersOfGroupResolver();
     private static final Sql.ResultsResolver<Collection<ExtMap>> ENTITIES_RESOLVER = new searchPageResolver();
 
     static {
@@ -717,6 +753,7 @@ public class Schema {
             GET_USER = p.getProperty("authentication.user.get");
             SEARCH_PRINCIPAL = p.getProperty("authorization.principal.search");
             SEARCH_GROUP = p.getProperty("authorization.group.search");
+            GROUP_MEMBERS_OF_GROUP = p.getProperty("authorization.group.members.of.group");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -745,6 +782,19 @@ public class Schema {
                 new Sql.Query(GET_SETTINGS).asResults(
                     ds,
                     SETTINGS_RESOLVER
+                )
+            );
+        } else if (input.get(InvokeKeys.ENTITY, ExtUUID.class).equals(Entities.GROUP_MEMBERS_OF_GROUP)) {
+            ret.mput(
+                InvokeKeys.GROUP_MEMBERS_OF_GROUP_RESULT,
+                new Sql.Query(
+                    Formatter.format(
+                        GROUP_MEMBERS_OF_GROUP,
+                        input.get(InvokeKeys.ENTITY_KEYS, ExtMap.class).get(CursorKeys.FILTER, String.class)
+                    )
+                ).asResults(
+                    ds,
+                    GROUP_MEMBERS_OF_GROUP_RESOLVER
                 )
             );
         } else if (input.get(InvokeKeys.ENTITY, ExtUUID.class).equals(Entities.CURSOR)) {

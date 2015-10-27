@@ -19,10 +19,14 @@ package org.ovirt.engine.extension.aaa.jdbc.binding.api;
 import static org.ovirt.engine.api.extensions.aaa.Authz.QueryFilterOperator;
 import static org.ovirt.engine.api.extensions.aaa.Authz.QueryFilterRecord;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -50,6 +54,7 @@ public class AuthzExtension implements Extension {
     private Tasks tasks = null;
     private Authorization authorization = null;
     private Properties configuration;
+    private DataSource ds = null;
 
     @Override
     public void invoke(ExtMap input, ExtMap output) {
@@ -129,13 +134,13 @@ public class AuthzExtension implements Extension {
     }
 
     private void doInit(ExtMap input, ExtMap output) {
-        DataSource ds = new DataSourceProvider(configuration).provide();
+        this.ds = new DataSourceProvider(configuration).provide();
         this.authorization = new Authorization(ds);
         this.tasks = new Tasks(ds, this.authorization);
         output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
     }
 
-    private void doFetchPrincipalRecord(ExtMap input, ExtMap output) throws SQLException {
+    private void doFetchPrincipalRecord(ExtMap input, ExtMap output) throws SQLException, IOException {
         int flags = input.get(Authz.InvokeKeys.QUERY_FLAGS, Integer.class, 0);
         Collection<ExtMap> principals = authorization.getResults(
             Formatter.format(
@@ -170,6 +175,13 @@ public class AuthzExtension implements Extension {
             principals.iterator().next() :
             null
         );
+        ExtMap principalRecord = output.get(Authz.InvokeKeys.PRINCIPAL_RECORD);
+        if (principalRecord != null && (flags & Authz.QueryFlags.RESOLVE_GROUPS_RECURSIVE) != 0) {
+            resolveNestedGroups(
+                principalRecord.<List<ExtMap>>get(Authz.PrincipalRecord.GROUPS),
+                new HashSet<String>()
+            );
+        }
         output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
         output.put(Authz.InvokeKeys.STATUS, Authz.Status.SUCCESS);
     }
@@ -281,5 +293,47 @@ public class AuthzExtension implements Extension {
         return sb.length() > 0 ?
         sb.toString() :
         "0";
+    }
+
+    private void resolveNestedGroups(List<ExtMap> groupsToResolve, Set<String> resolvedGroups)
+    throws IOException, SQLException {
+        if (groupsToResolve != null) {
+            for (ExtMap groupRecord : groupsToResolve) {
+                if (!resolvedGroups.contains(groupRecord.<String>get(Authz.GroupRecord.ID))) {
+                    resolvedGroups.add(groupRecord.<String>get(Authz.GroupRecord.ID));
+                    groupRecord.put(Authz.GroupRecord.GROUPS, getGroupMembers(groupRecord));
+                    resolveNestedGroups(
+                        groupRecord.<List<ExtMap>>get(Authz.PrincipalRecord.GROUPS),
+                        resolvedGroups);
+                }
+            }
+        }
+    }
+
+    private List<ExtMap> getGroupMembers(ExtMap groupRecord) throws IOException, SQLException {
+        return Schema.get(
+            new ExtMap().mput(
+                Schema.InvokeKeys.ENTITY, Schema.Entities.GROUP_MEMBERS_OF_GROUP
+            ).mput(
+                Schema.InvokeKeys.ENTITY_KEYS,
+                new ExtMap().mput(
+                    Schema.CursorKeys.FILTER,
+                    Formatter.format(
+                        "{} = {}",
+                        Schema.SEARCH_KEYS.get(Authz.GroupRecord.ID),
+                        Formatter.escapeString(groupRecord.get(Authz.GroupRecord.ID))
+                    )
+                )
+            ).mput(
+                Global.InvokeKeys.SEARCH_CONTEXT,
+                new ExtMap().mput(
+                    Global.SearchContext.ALL_ATTRIBUTES,
+                    true
+                )
+            ).mput(
+                Schema.InvokeKeys.DATA_SOURCE,
+                ds
+            )
+        ).get(Schema.InvokeKeys.GROUP_MEMBERS_OF_GROUP_RESULT);
     }
 }
