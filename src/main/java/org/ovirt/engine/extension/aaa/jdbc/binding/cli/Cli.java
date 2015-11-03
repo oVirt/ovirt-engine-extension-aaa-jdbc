@@ -41,6 +41,7 @@ import org.ovirt.engine.extension.aaa.jdbc.DateUtils;
 import org.ovirt.engine.extension.aaa.jdbc.Formatter;
 import org.ovirt.engine.extension.aaa.jdbc.Global;
 import org.ovirt.engine.extension.aaa.jdbc.binding.Config;
+import org.ovirt.engine.extension.aaa.jdbc.binding.api.ExtensionUtils;
 import org.ovirt.engine.extension.aaa.jdbc.binding.cli.command.Command;
 import org.ovirt.engine.extension.aaa.jdbc.binding.cli.command.GroupManageShowCommand;
 import org.ovirt.engine.extension.aaa.jdbc.core.Authentication;
@@ -160,6 +161,16 @@ public class Cli {
                         commands.get("_schema-get").invoke(context);
                         context.remove(Schema.InvokeKeys.ENTITY);
 
+                        try {
+                            ExtensionUtils.checkDbVersion(
+                                context.<DataSource>get(Schema.InvokeKeys.DATA_SOURCE).getConnection(),
+                                (String) args.get("db-config")
+                            );
+                        } catch (SQLException | IOException e) {
+                            context.put(ContextKeys.EXIT_STATUS, GENERAL_ERROR);
+                            addContextMessage(context, true, e.getMessage());
+                            context.<Collection<Throwable>>get(ContextKeys.THROWABLES).add(e);
+                        }
                     }
                     if (!context.containsKey(ContextKeys.EXIT_STATUS) && (Boolean) args.get("version")) {
                         System.out.print(
