@@ -58,10 +58,6 @@ public class AuthzExtension implements Extension {
 
     @Override
     public void invoke(ExtMap input, ExtMap output) {
-        Integer baseResult = null;
-        output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.FAILED);
-        output.put(Authz.InvokeKeys.STATUS, Authz.Status.GENERAL_ERROR);
-
         try {
             if (tasks != null) {
                 tasks.execute();
@@ -81,9 +77,11 @@ public class AuthzExtension implements Extension {
             } else if (input.get(Base.InvokeKeys.COMMAND).equals(Authz.InvokeCommands.QUERY_CLOSE)) {
                 doQueryClose(input, output);
             } else {
-                baseResult = Base.InvokeResult.UNSUPPORTED;
+                output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.UNSUPPORTED);
                 throw new IllegalArgumentException();
             }
+            output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
+            output.put(Authz.InvokeKeys.STATUS, Authz.Status.SUCCESS);
         } catch (Throwable e) {
             LOG.error(
                 "Unexpected Exception invoking: {}",
@@ -93,8 +91,9 @@ public class AuthzExtension implements Extension {
                 "Exception:",
                 e
             );
-            output.put(Base.InvokeKeys.RESULT, baseResult != null ? baseResult: Authz.Status.GENERAL_ERROR);
+            output.putIfAbsent(Base.InvokeKeys.RESULT, Base.InvokeResult.FAILED);
             output.put(Authz.InvokeKeys.STATUS, Authz.Status.GENERAL_ERROR);
+            output.put(Base.InvokeKeys.MESSAGE, e.getMessage());
         }
     }
 
@@ -129,15 +128,16 @@ public class AuthzExtension implements Extension {
                     ExtMap.class
                 )
             );
-
-        output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
     }
 
-    private void doInit(ExtMap input, ExtMap output) {
+    private void doInit(ExtMap input, ExtMap output) throws SQLException, IOException {
         this.ds = new DataSourceProvider(configuration).provide();
         this.authorization = new Authorization(ds);
         this.tasks = new Tasks(ds, this.authorization);
-        output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
+        ExtensionUtils.checkDbVersion(
+            ds.getConnection(),
+            input.<ExtMap>get(Base.InvokeKeys.CONTEXT).<String>get(Base.ContextKeys.CONFIGURATION_FILE)
+        );
     }
 
     private void doFetchPrincipalRecord(ExtMap input, ExtMap output) throws SQLException, IOException {
@@ -182,8 +182,6 @@ public class AuthzExtension implements Extension {
                 new HashSet<String>()
             );
         }
-        output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
-        output.put(Authz.InvokeKeys.STATUS, Authz.Status.SUCCESS);
     }
 
     private void doQueryOpen(ExtMap input, ExtMap output) throws SQLException {
@@ -220,8 +218,6 @@ public class AuthzExtension implements Extension {
             .mput(Base.InvokeKeys.RESULT, Base.InvokeResult.FAILED)
             .mput(Base.InvokeKeys.MESSAGE, e.getMessage());
         }
-        output.mput(Authz.InvokeKeys.STATUS, Authz.Status.SUCCESS);
-
     }
 
     private void doQueryExecute(ExtMap input, ExtMap output) throws SQLException {
@@ -231,14 +227,11 @@ public class AuthzExtension implements Extension {
                 input.get(Authz.InvokeKeys.QUERY_OPAQUE, String.class),
                 input.get(Authz.InvokeKeys.PAGE_SIZE, Integer.class, Integer.MAX_VALUE)
             )
-        ).mput(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS)
-        .mput(Authz.InvokeKeys.STATUS, Authz.Status.SUCCESS);
+        );
     }
 
     private void doQueryClose(ExtMap input, ExtMap output) throws SQLException {
         authorization.closeQuery(input.get(Authz.InvokeKeys.QUERY_OPAQUE, String.class));
-        output.put(Base.InvokeKeys.RESULT, Base.InvokeResult.SUCCESS);
-        output.put(Authz.InvokeKeys.STATUS, Authz.Status.SUCCESS);
     }
 
     private String parse(ExtMap filter, boolean orNull) {

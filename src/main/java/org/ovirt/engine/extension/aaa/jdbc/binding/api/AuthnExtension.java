@@ -74,7 +74,8 @@ public class AuthnExtension implements Extension {
                 "Exception:",
                 e
             );
-            output.mput(Base.InvokeKeys.RESULT, Base.InvokeResult.FAILED);
+            output.putIfAbsent(Base.InvokeKeys.RESULT, Base.InvokeResult.FAILED);
+            output.put(Base.InvokeKeys.MESSAGE, e.getMessage());
         }
     }
 
@@ -105,10 +106,14 @@ public class AuthnExtension implements Extension {
              );
     }
 
-    private void doInit(ExtMap input) {
+    private void doInit(ExtMap input) throws SQLException, IOException {
         DataSource ds = new DataSourceProvider(configuration).provide();
         this.authentication = new Authentication(ds);
         this.tasks = new Tasks(ds, this.authentication);
+        ExtensionUtils.checkDbVersion(
+            ds.getConnection(),
+            input.<ExtMap>get(Base.InvokeKeys.CONTEXT).<String>get(Base.ContextKeys.CONFIGURATION_FILE)
+        );
     }
 
     private void doAuth(ExtMap input, ExtMap output)
