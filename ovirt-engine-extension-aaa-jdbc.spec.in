@@ -49,6 +49,9 @@ Source:		http://resources.ovirt.org/pub/src/%{name}/%{name}-@PACKAGE_VERSION@.ta
 
 BuildRequires: %{java_devel}
 BuildRequires: %{slf4j} >= 1.7
+%if 0%{?fedora}
+BuildRequires: slf4j-jdk14 >= 1.7
+%endif
 BuildRequires: apache-commons-codec
 BuildRequires: apache-commons-lang
 BuildRequires: ant
