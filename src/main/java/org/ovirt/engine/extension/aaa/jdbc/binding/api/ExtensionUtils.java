@@ -78,7 +78,7 @@ public class ExtensionUtils {
 
             String baseDir = "/";
             try {
-                baseDir = new File(context.get(Base.ContextKeys.CONFIGURATION_FILE, "/dummy")).getParent();
+                baseDir = new File(context.get(Base.ContextKeys.CONFIGURATION_FILE, String.class, "/dummy")).getParent();
             } catch (Exception ex) {
                 // Ignore
             }
