@@ -293,7 +293,7 @@ public class Sql {
             ExtMap context
         ) throws SQLException {
             T resolved;
-            Cursor q = null;
+            Cursor<T> q = null;
             try {
                 q = new Query(query).asCursor(dataSource.getConnection(), resolver);
                 resolved = resolver.resolve(q.resultSet, context);
@@ -309,7 +309,7 @@ public class Sql {
             ExtMap context
         ) throws SQLException {
             T resolved;
-            Cursor q = null;
+            Cursor<T> q = null;
             try {
                 q = new Query(query).asCursor(conn, resolver);
                 resolved = resolver.resolve(q.resultSet, context);

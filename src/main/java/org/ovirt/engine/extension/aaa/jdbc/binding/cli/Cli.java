@@ -169,7 +169,7 @@ public class Cli {
                         } catch (SQLException | IOException e) {
                             context.put(ContextKeys.EXIT_STATUS, GENERAL_ERROR);
                             addContextMessage(context, true, e.getMessage());
-                            context.<Collection<Throwable>>get(ContextKeys.THROWABLES).add(e);
+                            context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
                         }
                     }
                     if (!context.containsKey(ContextKeys.EXIT_STATUS) && (Boolean) args.get("version")) {
@@ -389,7 +389,7 @@ public class Cli {
                     } catch (IOException | GeneralSecurityException e) {
                         context.put(ContextKeys.EXIT_STATUS, GENERAL_ERROR);
                         addContextMessage(context, true, e.getMessage());
-                        context.get(ContextKeys.THROWABLES, Collection.class).add(e);
+                        context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
                     }
                 }
             },
@@ -820,8 +820,7 @@ public class Cli {
                         context.put(ContextKeys.EXIT_STATUS, SQL_ERROR);
                         addContextMessage(context, true, e.getMessage());
 
-                        context.get(ContextKeys.THROWABLES, Collection.class)
-                            .add(e);
+                        context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
                     }
                 }
             },
@@ -868,15 +867,15 @@ public class Cli {
                         );
                     } catch (Schema.EntityNotFoundException e) {
                         addContextMessage(context, true, e.getMessage());
-                        context.get(ContextKeys.THROWABLES, Collection.class).add(e);
+                        context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
                         context.put(ContextKeys.EXIT_STATUS, NOT_FOUND);
                     } catch (Schema.EntityAlreadyExists e) {
                         addContextMessage(context, true, e.getMessage());
-                        context.get(ContextKeys.THROWABLES, Collection.class).add(e);
+                        context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
                         context.put(ContextKeys.EXIT_STATUS, ALREADY_EXISTS);
                     } catch (SQLException e) {
                         addContextMessage(context, true, e.getMessage());
-                        context.get(ContextKeys.THROWABLES, Collection.class).add(e);
+                        context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
                         context.put(ContextKeys.EXIT_STATUS, SQL_ERROR);
                     }
                 }
@@ -905,8 +904,7 @@ public class Cli {
                     } catch (SQLException e) {
                         context.put(ContextKeys.EXIT_STATUS, SQL_ERROR);
                         addContextMessage(context, true, e.getMessage());
-                        Collection<Throwable> throwables = context.get(ContextKeys.THROWABLES, Collection.class);
-                        throwables.add(e);
+                        context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
                     }
                 }
             },
@@ -963,7 +961,7 @@ public class Cli {
                                 )
                             ).matcher(out);
                             out = m.replaceAll(
-                                m.quoteReplacement(formatValue(entry))
+                                    Matcher.quoteReplacement(formatValue(entry))
                             );
                         }
                         addContextMessage(context, false, out);
@@ -991,16 +989,16 @@ public class Cli {
             commands.get("root").invoke(context);
 
 
-            for (String msg: (List<String>)context.get(ContextKeys.ERR_MESSAGES, List.class)) {
+            for (String msg: context.<List<String>>get(ContextKeys.ERR_MESSAGES)) {
                 System.err.print(newLine(msg));
             }
 
 
-            for (String msg: (List<String>)context.get(ContextKeys.OUT_MESSAGES, List.class)) {
+            for (String msg: context.<List<String>>get(ContextKeys.OUT_MESSAGES)) {
                 System.out.print(newLine(msg));
             }
 
-            for (Object thr: context.get(ContextKeys.THROWABLES, List.class)) {
+            for (Throwable thr: context.<List<Throwable>>get(ContextKeys.THROWABLES)) {
                 LOG.debug("Exception", thr);
             }
             System.exit(
@@ -1024,7 +1022,7 @@ public class Cli {
         } else {
             key = ContextKeys.OUT_MESSAGES;
         }
-        ((List<String>) context.get(key, List.class)).add(message);
+        context.<List<String>>get(key).add(message);
     }
 
     private static Properties loadPropertiesFromFile(String filename) {
@@ -1129,7 +1127,7 @@ public class Cli {
             addContextMessage(context, true, e.getMessage());
             context.mput(ContextKeys.EXIT_STATUS, ARGUMENT_PARSING_ERROR);
 
-            context.get(ContextKeys.THROWABLES, Collection.class).add(e);
+            context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
         }
         return context;
     }
@@ -1290,6 +1288,7 @@ public class Cli {
     }
 
 
+    @SuppressWarnings("unchecked")
     private static Boolean getDefFlag(Map<String, Object> input, String name, Boolean def) {
         Boolean ret = null;
         if (input.get("flag") != null) {

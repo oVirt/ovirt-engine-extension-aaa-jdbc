@@ -122,8 +122,8 @@ public abstract class Command {
                 List<Throwable> errors = argumentsParser.getErrors();
                 if (errors.size() > 0) {
                     for (Throwable thr: errors) {
-                        context.get(ContextKeys.THROWABLES, List.class).add(thr);
-                        context.get(ContextKeys.ERR_MESSAGES, List.class).add(thr.getMessage());
+                        context.<List<Throwable>>get(ContextKeys.THROWABLES).add(thr);
+                        context.<List<String>>get(ContextKeys.ERR_MESSAGES).add(thr.getMessage());
                     }
                     context.mput(ContextKeys.EXIT_STATUS, Cli.ARGUMENT_PARSING_ERROR);
                 }
@@ -139,6 +139,6 @@ public abstract class Command {
         } else {
             key = ContextKeys.OUT_MESSAGES;
         }
-        ((List<String>) context.get(key, List.class)).add(message);
+        context.<List<String>>get(key).add(message);
     }
 }

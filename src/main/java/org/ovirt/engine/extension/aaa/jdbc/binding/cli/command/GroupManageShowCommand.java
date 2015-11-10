@@ -11,7 +11,6 @@ import javax.sql.DataSource;
 
 import org.ovirt.engine.api.extensions.ExtMap;
 import org.ovirt.engine.api.extensions.aaa.Authz;
-import org.ovirt.engine.extension.aaa.jdbc.Formatter;
 import org.ovirt.engine.extension.aaa.jdbc.binding.cli.Cli;
 import org.ovirt.engine.extension.aaa.jdbc.binding.cli.ContextKeys;
 import org.ovirt.engine.extension.aaa.jdbc.core.Schema;
@@ -52,7 +51,7 @@ public class GroupManageShowCommand extends Command {
         } catch (SQLException e) {
             context.put(ContextKeys.EXIT_STATUS, Cli.SQL_ERROR);
             addContextMessage(context, true, e.getMessage());
-            context.get(ContextKeys.THROWABLES, Collection.class).add(e);
+            context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
         }
     }
 
