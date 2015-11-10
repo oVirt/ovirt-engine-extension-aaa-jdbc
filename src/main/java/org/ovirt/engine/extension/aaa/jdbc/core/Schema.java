@@ -364,7 +364,7 @@ public class Schema {
                 group.putIfAbsent(AuthzInternal.GROUP_DESCRIPTION, "");
 
 
-                next.get(Authz.PrincipalRecord.GROUPS, ArrayList.class).add(group);
+                next.<List<ExtMap>>get(Authz.PrincipalRecord.GROUPS).add(group);
             }
         }
     }
@@ -399,7 +399,7 @@ public class Schema {
                 group.put(AuthzInternal.GROUP_DESCRIPTION, rs.getString("group_group_description"));
                 group.putIfAbsent(AuthzInternal.GROUP_DESCRIPTION, "");
 
-                next.get(Authz.GroupRecord.GROUPS, ArrayList.class).add(group);
+                next.<List<ExtMap>>get(Authz.GroupRecord.GROUPS).add(group);
             }
         }
     }
@@ -962,7 +962,7 @@ public class Schema {
                 id = (Integer) ctx.get(Sql.ModificationContext.GENERATED_IDS, List/**<Integer>*/.class).get(0);
             }
             if (op != Sql.ModificationTypes.DELETE && userKeys.containsKey(SharedKeys.ATTRIBUTES)) { // on delete cascade
-                upsertAttribute(id, userKeys.get(SharedKeys.ATTRIBUTES, Collection.class), conn, true);
+                upsertAttribute(id, userKeys.<Collection<ExtMap>>get(SharedKeys.ATTRIBUTES), conn, true);
             }
             if (
                 op == Sql.ModificationTypes.UPDATE &&
@@ -1047,7 +1047,7 @@ public class Schema {
             }
             if (op != Sql.ModificationTypes.DELETE && groupKeys.containsKey(SharedKeys.ATTRIBUTES)) { // on delete cascade
 
-                upsertAttribute(id, groupKeys.get(SharedKeys.ATTRIBUTES, Collection.class), conn, false);
+                upsertAttribute(id, groupKeys.<Collection<ExtMap>>get(SharedKeys.ATTRIBUTES), conn, false);
             }
             if (op == Sql.ModificationTypes.UPDATE && groupKeys.containsKey(SharedKeys.ADD_GROUP)) {
                 updateGroupMembership(id, groupKeys.get(SharedKeys.ADD_GROUP, String.class), conn, true, false);
@@ -1220,12 +1220,16 @@ public class Schema {
     }
 
     public static class EntityNotFoundException extends SQLException {
+        private static final long serialVersionUID = 6612935575387993623L;
+
         public EntityNotFoundException(String what, String who) {
             super(new StringBuilder(what).append(" ").append(who).append(" ").append("not found").toString());
         }
     }
 
     public static class EntityAlreadyExists extends SQLException {
+        private static final long serialVersionUID = -1077934189115100475L;
+
         public EntityAlreadyExists(String what, String who) {
             super(new StringBuilder(what).append(" ").append(who).append(" ").append("already exists").toString());
         }

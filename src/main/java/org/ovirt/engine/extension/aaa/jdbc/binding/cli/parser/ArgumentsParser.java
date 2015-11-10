@@ -400,6 +400,7 @@ public class ArgumentsParser {
      * @param arg argument to be put in map
      * @param value value of argument
      */
+    @SuppressWarnings("unchecked")
     private void putValue(Map<String, Object> argMap, Argument arg, Object value) {
         if (!arg.isMultivalue()) {
             argMap.put(arg.getName(), value);
