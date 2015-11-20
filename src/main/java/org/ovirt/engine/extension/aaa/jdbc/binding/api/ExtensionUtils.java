@@ -33,6 +33,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import javax.sql.DataSource;
+
 import org.ovirt.engine.api.extensions.Base;
 import org.ovirt.engine.api.extensions.ExtMap;
 import org.ovirt.engine.extension.aaa.jdbc.Formatter;
@@ -139,25 +141,27 @@ public class ExtensionUtils {
         return fileNames.get(fileNames.size() -1);
     }
 
-    public static void checkDbVersion(Connection conn, String configurationFile)
+    public static void checkDbVersion(DataSource ds, String configurationFile)
     throws IOException, SQLException {
-        boolean uptodate = new Sql.Query(
-            Formatter.format(
-                "SELECT COUNT(script) AS count FROM schema_version WHERE script = {}",
-                Formatter.escapeString(
-                    getLatestUpgradeScriptName(
-                        getDbScriptsDir(configurationFile)
+        try (Connection conn = ds.getConnection()) {
+            boolean uptodate = new Sql.Query(
+                Formatter.format(
+                    "SELECT COUNT(script) AS count FROM schema_version WHERE script = {}",
+                    Formatter.escapeString(
+                        getLatestUpgradeScriptName(
+                            getDbScriptsDir(configurationFile)
+                        )
                     )
                 )
-            )
-        ).asInteger(conn, "count") == 1;
-        if (!uptodate) {
-            throw new RuntimeException(
-                "Database schema is older than required by currently installed ovirt-engine-extension-aaa-jdbc " +
-                "package version. Please upgrade profile database schema before proceeding (for more info about " +
-                "upgrade please take a look at README.admin file contained in ovirt-engine-extension-aaa-jdbc " +
-                "package)."
-            );
+            ).asInteger(conn, "count") == 1;
+            if (!uptodate) {
+                throw new RuntimeException(
+                    "Database schema is older than required by currently installed ovirt-engine-extension-aaa-jdbc " +
+                    "package version. Please upgrade profile database schema before proceeding (for more info about " +
+                    "upgrade please take a look at README.admin file contained in ovirt-engine-extension-aaa-jdbc " +
+                    "package)."
+                );
+            }
         }
     }
 }

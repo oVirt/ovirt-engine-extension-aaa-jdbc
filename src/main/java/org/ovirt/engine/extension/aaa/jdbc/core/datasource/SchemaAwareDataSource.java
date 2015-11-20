@@ -25,13 +25,14 @@ public class SchemaAwareDataSource implements DataSource {
     }
 
     private Connection applyCustomSchema(Connection connection) throws SQLException {
-        Statement st = connection.createStatement();
-        st.executeUpdate(
-            String.format(
-                "SET search_path TO %s",
-                Formatter.escapeString(customSchema)
-            )
-        );
+        try (Statement st = connection.createStatement()) {
+            st.executeUpdate(
+                String.format(
+                    "SET search_path TO %s",
+                    Formatter.escapeString(customSchema)
+                )
+            );
+        }
         return connection;
     }
 
