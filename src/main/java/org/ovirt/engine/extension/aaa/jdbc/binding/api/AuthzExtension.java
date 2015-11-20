@@ -135,7 +135,7 @@ public class AuthzExtension implements Extension {
         this.authorization = new Authorization(ds);
         this.tasks = new Tasks(ds, this.authorization);
         ExtensionUtils.checkDbVersion(
-            ds.getConnection(),
+            ds,
             input.<ExtMap>get(Base.InvokeKeys.CONTEXT).<String>get(Base.ContextKeys.CONFIGURATION_FILE)
         );
     }

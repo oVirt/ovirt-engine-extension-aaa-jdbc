@@ -771,7 +771,7 @@ public class Schema {
                         generateWhere(input.get(InvokeKeys.ENTITY_KEYS, ExtMap.class))
                     )
                 ).asResults(
-                    ds.getConnection(),
+                    ds,
                     USER_RESOLVER,
                     input.get(InvokeKeys.SETTINGS_RESULT, ExtMap.class)
                 )

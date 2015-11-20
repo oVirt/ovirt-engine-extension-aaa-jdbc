@@ -111,7 +111,7 @@ public class AuthnExtension implements Extension {
         this.authentication = new Authentication(ds);
         this.tasks = new Tasks(ds, this.authentication);
         ExtensionUtils.checkDbVersion(
-            ds.getConnection(),
+            ds,
             input.<ExtMap>get(Base.InvokeKeys.CONTEXT).<String>get(Base.ContextKeys.CONFIGURATION_FILE)
         );
     }

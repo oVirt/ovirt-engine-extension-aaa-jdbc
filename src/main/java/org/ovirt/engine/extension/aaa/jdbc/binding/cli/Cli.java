@@ -163,7 +163,7 @@ public class Cli {
 
                         try {
                             ExtensionUtils.checkDbVersion(
-                                context.<DataSource>get(Schema.InvokeKeys.DATA_SOURCE).getConnection(),
+                                context.<DataSource>get(Schema.InvokeKeys.DATA_SOURCE),
                                 (String) args.get("db-config")
                             );
                         } catch (SQLException | IOException e) {
