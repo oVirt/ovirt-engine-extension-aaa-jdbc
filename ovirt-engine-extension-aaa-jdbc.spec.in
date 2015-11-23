@@ -39,7 +39,7 @@
 	%{nil}
 Name:		@PACKAGE_NAME@
 Version:	@RPM_VERSION@
-Release:	@RPM_RELEASE@%{?release_suffix}%{?dist}
+Release:	@RPM_RELEASE@%{?dist}
 License:	ASL 2.0
 Summary:	oVirt Engine Local Users Extension
 Group:		Virtualization/Management
@@ -101,6 +101,9 @@ make %{make_common_opts} install-no-build DESTDIR="%{buildroot}"
 %{_bindir}/ovirt-aaa-jdbc-tool
 
 %changelog
+* Mon Nov 23 2015 Martin Perina <mperina@redhat.com> 1.0.3-1
+- Fixed bug 1283936
+
 * Fri Nov 06 2015 Martin Perina <mperina@redhat.com> 1.0.2-1
 - Fixed bugs 1277398, 1241883, 1241879, 1275667
 
