@@ -66,8 +66,8 @@ public class Schema {
         public static final ExtUUID GROUP = new ExtUUID();
 
         /** Group type members of Group */
-        public static final ExtUUID GROUP_MEMBERS_OF_GROUP = new ExtUUID(
-                "AAA_JDBC_GROUP_MEMBERS_OF_GROUP",
+        public static final ExtUUID GROUP_MEMBERSHIPS = new ExtUUID(
+                "AAA_JDBC_GROUP_MEMBERSHIPS",
                 "7dbb74df-9107-49a6-9487-bcee8a1c52d5"
         );
 
@@ -99,7 +99,7 @@ public class Schema {
         public static final ExtKey MODIFICATION_TYPE = new ExtKey("AAA_JDBC_MODIFICATION_TYPE", Integer.class, "c321aedb-ae00-4ec8-a478-32426da7d4d2");
         public static final ExtKey USER_RESULT = new ExtKey("AAA_JDBC_USER_RESULT", User.class, "4012d9b1-735a-43eb-9bc1-c065c9638d70");
         public static final ExtKey SETTINGS_RESULT = new ExtKey("AAA_JDBC_SETTINGS_RESULT", ExtMap.class, "966f32e0-7154-4736-8890-a05a694a9cd0");
-        public static final ExtKey GROUP_MEMBERS_OF_GROUP_RESULT = new ExtKey("AAA_JDBC_GROUP_MEMBERS_OF_GROUP_RESULT", List.class, "5e8d3e48-ed12-407b-95e2-a18c6bccb5d4");
+        public static final ExtKey GROUP_MEMBERSHIPS_RESULT = new ExtKey("AAA_JDBC_GROUP_MEMBERSHIPS_RESULT", List.class, "5e8d3e48-ed12-407b-95e2-a18c6bccb5d4");
         public static final ExtKey CURSOR_RESULT = new ExtKey("AAA_JDBC_CURSOR_RESULT", Sql.Cursor.class, "016aaa8b-8ae2-4220-a277-8197e4eb5405");
         /** SEARCH_PAGE_RESULT is null if there are no results */
         public static final ExtKey SEARCH_PAGE_RESULT = new ExtKey("AAA_JDBC_PRINCIPAL_RESULT", Collection /**<ExtMap.class*/.class, "7a5c3151-1160-4668-b34c-0062997fc7af");
@@ -676,7 +676,7 @@ public class Schema {
     private static final String GET_USER;
     private static final String SEARCH_PRINCIPAL;
     private static final String SEARCH_GROUP;
-    private static final String GROUP_MEMBERS_OF_GROUP;
+    private static final String GROUP_MEMBERSHIPS;
     /** SELECT field names for queries exposed for Authz.QueryFilterRecord.KEY */
     public static final Map<ExtKey, String> SEARCH_KEYS = new HashMap<>();
     public static final Map<Integer, String> OPERATORS = new HashMap<>();
@@ -753,7 +753,7 @@ public class Schema {
             GET_USER = p.getProperty("authentication.user.get");
             SEARCH_PRINCIPAL = p.getProperty("authorization.principal.search");
             SEARCH_GROUP = p.getProperty("authorization.group.search");
-            GROUP_MEMBERS_OF_GROUP = p.getProperty("authorization.group.members.of.group");
+            GROUP_MEMBERSHIPS = p.getProperty("authorization.group.memberships");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -784,12 +784,12 @@ public class Schema {
                     SETTINGS_RESOLVER
                 )
             );
-        } else if (input.get(InvokeKeys.ENTITY, ExtUUID.class).equals(Entities.GROUP_MEMBERS_OF_GROUP)) {
+        } else if (input.get(InvokeKeys.ENTITY, ExtUUID.class).equals(Entities.GROUP_MEMBERSHIPS)) {
             ret.mput(
-                InvokeKeys.GROUP_MEMBERS_OF_GROUP_RESULT,
+                InvokeKeys.GROUP_MEMBERSHIPS_RESULT,
                 new Sql.Query(
                     Formatter.format(
-                        GROUP_MEMBERS_OF_GROUP,
+                        GROUP_MEMBERSHIPS,
                         input.get(InvokeKeys.ENTITY_KEYS, ExtMap.class).get(CursorKeys.FILTER, String.class)
                     )
                 ).asResults(

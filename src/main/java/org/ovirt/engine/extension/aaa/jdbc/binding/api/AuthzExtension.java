@@ -177,9 +177,9 @@ public class AuthzExtension implements Extension {
         );
         ExtMap principalRecord = output.get(Authz.InvokeKeys.PRINCIPAL_RECORD);
         if (principalRecord != null && (flags & Authz.QueryFlags.RESOLVE_GROUPS_RECURSIVE) != 0) {
-            resolveNestedGroups(
-                principalRecord.<List<ExtMap>>get(Authz.PrincipalRecord.GROUPS),
-                new HashSet<String>()
+            resolveGroupsMemberships(
+                    principalRecord.<List<ExtMap>>get(Authz.PrincipalRecord.GROUPS),
+                    new HashSet<String>()
             );
         }
     }
@@ -288,25 +288,25 @@ public class AuthzExtension implements Extension {
         "0";
     }
 
-    private void resolveNestedGroups(List<ExtMap> groupsToResolve, Set<String> resolvedGroups)
+    private void resolveGroupsMemberships(List<ExtMap> groupsToResolve, Set<String> resolvedGroups)
     throws IOException, SQLException {
         if (groupsToResolve != null) {
             for (ExtMap groupRecord : groupsToResolve) {
                 if (!resolvedGroups.contains(groupRecord.<String>get(Authz.GroupRecord.ID))) {
                     resolvedGroups.add(groupRecord.<String>get(Authz.GroupRecord.ID));
-                    groupRecord.put(Authz.GroupRecord.GROUPS, getGroupMembers(groupRecord));
-                    resolveNestedGroups(
-                        groupRecord.<List<ExtMap>>get(Authz.PrincipalRecord.GROUPS),
-                        resolvedGroups);
+                    groupRecord.put(Authz.GroupRecord.GROUPS, getGroupMemberships(groupRecord));
+                    resolveGroupsMemberships(
+                            groupRecord.<List<ExtMap>>get(Authz.GroupRecord.GROUPS),
+                            resolvedGroups);
                 }
             }
         }
     }
 
-    private List<ExtMap> getGroupMembers(ExtMap groupRecord) throws IOException, SQLException {
+    private List<ExtMap> getGroupMemberships(ExtMap groupRecord) throws IOException, SQLException {
         return Schema.get(
             new ExtMap().mput(
-                Schema.InvokeKeys.ENTITY, Schema.Entities.GROUP_MEMBERS_OF_GROUP
+                Schema.InvokeKeys.ENTITY, Schema.Entities.GROUP_MEMBERSHIPS
             ).mput(
                 Schema.InvokeKeys.ENTITY_KEYS,
                 new ExtMap().mput(
@@ -327,6 +327,6 @@ public class AuthzExtension implements Extension {
                 Schema.InvokeKeys.DATA_SOURCE,
                 ds
             )
-        ).get(Schema.InvokeKeys.GROUP_MEMBERS_OF_GROUP_RESULT);
+        ).get(Schema.InvokeKeys.GROUP_MEMBERSHIPS_RESULT);
     }
 }
