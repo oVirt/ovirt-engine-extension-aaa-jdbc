@@ -72,7 +72,7 @@ public class DataSourceProvider {
             throw new IllegalArgumentException("Failed to load JDBC_DRIVER: " + jdbcDriver);
         }
         return (DataSource) Proxy.newProxyInstance(
-            Thread.currentThread().getContextClassLoader(),
+            this.getClass().getClassLoader(),
             new Class<?>[] { DataSource.class },
             new InvocationHandler() {
                 @Override
