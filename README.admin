@@ -99,41 +99,16 @@ following steps:
 
 IV. Upgrading 'internal' profile
 
-ATTENTION: aaa-jdbc extension is not upgraded automatically during oVirt
-engine upgrade and it needs to be upgraded manually!
+aaa-jdbc package and 'internal' profile is automatically upgraded during
+engine-setup execution, no manual action is required.
 
-When you want to upgrade aaa-jdbc extension please do following steps:
-
-1. Upgrade oVirt engine
-     For details please take a look at at oVirt Administration Guide.
-
-2. Stop oVirt engine service
-
-     EL6:          service ovirt-engine stop
-     EL7/Fedora:   systemctl stop ovirt-engine
-
-3. Upgrade aaa-jdbc package
-
-     EL6/EL7:      yum update ovirt-engine-extension-aaa-jdbc
-     Fedora:       dnf update ovirt-engine-extension-aaa-jdbc
-
-4. Upgrade aaa-jdbc database for 'internal' profile by executing
-
-     engine-setup
-
-If your setup doesn't contain custom aaa-jdbc profiles, upgrade process is
-finished.
-
-If you setup contains also custom aaa-jdbc profiles (more info in chapter III.
-Configuration of a new custom aaa-jdbc profile), please continue with steps
-described in chapter V. Upgrading custom profiles.
+ATTENTION: If your setup contains also custom aaa-jdbc profiles (more info
+in chapter III. Configuration of a new custom aaa-jdbc profile), please
+continue with steps described in chapter V. Upgrading custom profiles.
 
 
 
 V. Upgrading custom profiles
-
-Before proceeding please make sure that you have already finished upgrade of
-'internal' profile described in chapter IV. Upgrading 'internal' profile.
 
 To upgrade custom aaa-jdbc profiles please do following steps:
 
