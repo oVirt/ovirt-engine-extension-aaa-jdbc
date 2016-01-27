@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -1220,6 +1221,18 @@ public class Cli {
         return attributes;
     }
 
+    private static String readPasswordInteractively(ExtMap context) throws IOException {
+        String pass1 = new String(System.console().readPassword("Password:"));
+        String pass2 = new String(System.console().readPassword("Reenter password:"));
+        if (!Objects.equals(pass1, pass2)) {
+            context.put(ContextKeys.EXIT_STATUS, GENERAL_ERROR);
+            addContextMessage(context, true, "Passwords don't match!");
+            return null;
+        } else {
+            return pass1;
+        }
+    }
+
     private static void putUserResetPassParams(ExtMap context, Map<String, Object> args) throws IOException {
         String pass;
         String password = null;
@@ -1238,7 +1251,7 @@ public class Cli {
                     password = readFile(passwords[1]);
                     break;
                 case "interactive":
-                    password = new String(System.console().readPassword("Password:"));
+                    password = readPasswordInteractively(context);
                     break;
                 case "none":
                     userParams.put(Schema.UserKeys.NOPASS, true);
