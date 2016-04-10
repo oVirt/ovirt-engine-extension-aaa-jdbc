@@ -23,10 +23,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -175,13 +172,6 @@ public class AuthzExtension implements Extension {
             principals.iterator().next() :
             null
         );
-        ExtMap principalRecord = output.get(Authz.InvokeKeys.PRINCIPAL_RECORD);
-        if (principalRecord != null && (flags & Authz.QueryFlags.RESOLVE_GROUPS_RECURSIVE) != 0) {
-            resolveGroupsMemberships(
-                    principalRecord.<List<ExtMap>>get(Authz.PrincipalRecord.GROUPS),
-                    new HashSet<String>()
-            );
-        }
     }
 
     private void doQueryOpen(ExtMap input, ExtMap output) throws SQLException {
@@ -220,7 +210,7 @@ public class AuthzExtension implements Extension {
         }
     }
 
-    private void doQueryExecute(ExtMap input, ExtMap output) throws SQLException {
+    private void doQueryExecute(ExtMap input, ExtMap output) throws SQLException, IOException {
         output.mput(
             Authz.InvokeKeys.QUERY_RESULT,
             authorization.executeQuery(
@@ -286,47 +276,5 @@ public class AuthzExtension implements Extension {
         return sb.length() > 0 ?
         sb.toString() :
         "0";
-    }
-
-    private void resolveGroupsMemberships(List<ExtMap> groupsToResolve, Set<String> resolvedGroups)
-    throws IOException, SQLException {
-        if (groupsToResolve != null) {
-            for (ExtMap groupRecord : groupsToResolve) {
-                if (!resolvedGroups.contains(groupRecord.<String>get(Authz.GroupRecord.ID))) {
-                    resolvedGroups.add(groupRecord.<String>get(Authz.GroupRecord.ID));
-                    groupRecord.put(Authz.GroupRecord.GROUPS, getGroupMemberships(groupRecord));
-                    resolveGroupsMemberships(
-                            groupRecord.<List<ExtMap>>get(Authz.GroupRecord.GROUPS),
-                            resolvedGroups);
-                }
-            }
-        }
-    }
-
-    private List<ExtMap> getGroupMemberships(ExtMap groupRecord) throws IOException, SQLException {
-        return Schema.get(
-            new ExtMap().mput(
-                Schema.InvokeKeys.ENTITY, Schema.Entities.GROUP_MEMBERSHIPS
-            ).mput(
-                Schema.InvokeKeys.ENTITY_KEYS,
-                new ExtMap().mput(
-                    Schema.CursorKeys.FILTER,
-                    Formatter.format(
-                        "{} = {}",
-                        Schema.SEARCH_KEYS.get(Authz.GroupRecord.ID),
-                        Formatter.escapeString(groupRecord.get(Authz.GroupRecord.ID))
-                    )
-                )
-            ).mput(
-                Global.InvokeKeys.SEARCH_CONTEXT,
-                new ExtMap().mput(
-                    Global.SearchContext.ALL_ATTRIBUTES,
-                    true
-                )
-            ).mput(
-                Schema.InvokeKeys.DATA_SOURCE,
-                ds
-            )
-        ).get(Schema.InvokeKeys.GROUP_MEMBERSHIPS_RESULT);
     }
 }
