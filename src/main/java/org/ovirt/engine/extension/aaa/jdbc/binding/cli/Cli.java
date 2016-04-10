@@ -902,7 +902,7 @@ public class Cli {
                              )
                         );
 
-                    } catch (SQLException e) {
+                    } catch (SQLException | IOException e) {
                         context.put(ContextKeys.EXIT_STATUS, SQL_ERROR);
                         addContextMessage(context, true, e.getMessage());
                         context.<List<Throwable>>get(ContextKeys.THROWABLES).add(e);
