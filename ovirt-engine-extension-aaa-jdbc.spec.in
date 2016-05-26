@@ -1,36 +1,3 @@
-%if 0%{?rhel}
-%if 0%{?rhel} < 7
-%global java_devel java7-devel
-%if 0%{?centos}
-%global slf4j slf4j
-# On Centos 6 we need to use Jackson from JPP repo
-%global jackson_available 1
-%global jackson_core_asl_jar jackson/jackson-core-asl
-%global jackson_mapper_asl_jar jackson/jackson-mapper-asl
-%else
-%global slf4j slf4j-eap6
-# On RHEL 6 we need to use Jackson from EAP6 repo
-%global jackson_available 0
-%global jackson_core_asl_jar codehaus-jackson/jackson-core-asl
-%global jackson_mapper_asl_jar codehaus-jackson/jackson-mapper-asl
-%endif
-%else
-%global java_devel java-devel >= 1.7.0
-%global slf4j slf4j
-%global jackson_available 1
-%global jackson_core_asl_jar jackson/jackson-core-asl
-%global jackson_mapper_asl_jar jackson/jackson-mapper-asl
-%endif
-%endif
-
-%if 0%{?fedora}
-%global java_devel java-devel >= 1.7.0
-%global slf4j slf4j
-%global jackson_available 1
-%global jackson_core_asl_jar jackson/jackson-core-asl
-%global jackson_mapper_asl_jar jackson/jackson-mapper-asl
-%endif
-
 %global make_common_opts \\\
 	PREFIX=%{_prefix} \\\
 	SYSCONF_DIR=%{_sysconfdir} \\\
@@ -47,23 +14,19 @@ URL:		http://www.ovirt.org
 BuildArch:	noarch
 Source:		http://resources.ovirt.org/pub/src/%{name}/%{name}-@PACKAGE_VERSION@.tar.gz
 
-BuildRequires: %{java_devel}
-BuildRequires: %{slf4j} >= 1.7
-%if 0%{?fedora}
-BuildRequires: slf4j-jdk14 >= 1.7
-%endif
+BuildRequires: java-devel >= 1.7.0
+
 BuildRequires: apache-commons-codec
 BuildRequires: apache-commons-lang
 BuildRequires: ant
+BuildRequires: jackson
 BuildRequires: jpackage-utils
 BuildRequires: ovirt-engine-extensions-api
 BuildRequires: postgresql-jdbc
+BuildRequires: slf4j >= 1.7
 
-%if %{jackson_available}
-BuildRequires: jackson
-%else
-BuildRequires: codehaus-jackson-core-asl
-BuildRequires: codehaus-jackson-mapper-asl
+%if 0%{?fedora}
+BuildRequires: slf4j-jdk14 >= 1.7
 %endif
 
 Requires: ovirt-engine-extensions-api-impl >= 3.5
@@ -78,11 +41,11 @@ Local JDBC user management for oVirt engine.
 cat > build.properties << __EOF__
 jar.commons-codec=$(build-classpath commons-codec)
 jar.commons-lang=$(build-classpath commons-lang)
-jar.jackson-core-asl=$(build-classpath %{jackson_core_asl_jar})
-jar.jackson-mapper-asl=$(build-classpath %{jackson_mapper_asl_jar})
+jar.jackson-core-asl=$(build-classpath jackson/jackson-core-asl)
+jar.jackson-mapper-asl=$(build-classpath jackson/jackson-mapper-asl)
 jar.ovirt-engine-extensions-api=$(build-classpath ovirt-engine/ovirt-engine-extensions-api)
 jar.jdbc=$(build-classpath postgresql-jdbc)
-jar.slf4j-api=$(build-classpath %{slf4j}/slf4j-api)
+jar.slf4j-api=$(build-classpath slf4j/slf4j-api)
 package.display.name=%{name}-%{version}-%{release}
 
 __EOF__
