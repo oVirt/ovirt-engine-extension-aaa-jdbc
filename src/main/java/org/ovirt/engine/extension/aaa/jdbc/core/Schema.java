@@ -136,6 +136,7 @@ public class Schema {
         public static final ExtKey DISABLED = new ExtKey("CATALOG_DISABLED", Boolean.class, "7a5d77c6-f831-400b-bc8e-b9d8ea286408");
         /** unlock_time = value,  consecutive_failures = 0 */
         public static final ExtKey UNLOCK_TIME = new ExtKey("CATALOG_UNLOCK_TIME", Long.class, "7b1042a6-35ea-4108-8cc4-2ed142ba002f");
+        public static final ExtKey LOCKED = new ExtKey("CATALOG_LOCKED", Boolean.class, "df080800-6460-41ad-a3d4-eec98cf1c7d0");
         /**  last_successful_login = value, consecutive_failures = 0 */
         public static final ExtKey SUCCESSFUL_LOGIN = new ExtKey("CATALOG_SUCCESSFUL_LOGIN", Long.class, "338117a2-4eec-4aca-9dd1-9bcbe95600f2");
         /**  last_unsuccessful_login = value, consecutive_failures++, insert a failed_login record */
@@ -342,6 +343,7 @@ public class Schema {
             if (context.get(Global.SearchContext.ALL_ATTRIBUTES, Boolean.class, false)) {
                 next.put(UserKeys.DISABLED, rs.getBoolean("user_disabled"));
                 next.put(UserKeys.UNLOCK_TIME, rs.getTimestamp("user_unlock_time").getTime());
+                next.put(UserKeys.LOCKED, (Long)next.get(UserKeys.UNLOCK_TIME) > System.currentTimeMillis());
                 next.put(UserKeys.VALID_FROM, rs.getTimestamp("user_valid_from").getTime());
                 next.put(UserKeys.VALID_TO, rs.getTimestamp("user_valid_to").getTime());
                 next.put(UserKeys.NOPASS, rs.getBoolean("user_nopasswd"));
