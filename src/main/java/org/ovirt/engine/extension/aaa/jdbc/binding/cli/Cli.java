@@ -485,9 +485,8 @@ public class Cli {
                     );
 
                     if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
-                        commands.get("_schema-modify")
-                            .invoke(context);
-                        context.put(ContextKeys.EXIT_STATUS, SUCCESS);
+                        commands.get("_schema-modify").invoke(context);
+                        context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
                     }
                 }
             },
