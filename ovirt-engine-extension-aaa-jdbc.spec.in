@@ -6,7 +6,7 @@
 	%{nil}
 Name:		@PACKAGE_NAME@
 Version:	@RPM_VERSION@
-Release:	@RPM_RELEASE@%{?release_suffix}%{?dist}
+Release:	@RPM_RELEASE@%{?dist}
 License:	ASL 2.0
 Summary:	oVirt Engine Local Users Extension
 Group:		Virtualization/Management
@@ -64,6 +64,10 @@ make %{make_common_opts} install-no-build DESTDIR="%{buildroot}"
 %{_bindir}/ovirt-aaa-jdbc-tool
 
 %changelog
+* Tue Oct 11 2016 Martin Perina <mperina@redhat.com> 1.1.1-1
+- Fixed bug 1373111
+- Fixed wrong return state when add group failed after group was added to db
+
 * Thu May 26 2016 Martin Perina <mperina@redhat.com> 1.1.0-1
 - Removes EL6 support
 - Fixed classloading issue in WildFly 10
