@@ -7,9 +7,9 @@ Prerequisites
  - apache-commons-codec
  - apache-commons-lang
  - jackson
- - ovirt-engine-extensions-api
+ - ovirt-engine-extensions-api-impl
  - postgresql-jdbc
- - slf4j-api
+ - slf4j
  - slf4j-log4j12
 
 Setup dependencies
