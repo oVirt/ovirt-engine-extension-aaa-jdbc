@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
@@ -29,7 +30,6 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
@@ -1315,9 +1315,12 @@ public class Cli {
     }
 
     private static String readFile(String path) throws IOException {
-        byte[] encoded = Files.readAllBytes(Paths.get(path));
-        return new String(encoded, Charset.forName("UTF-8"));
-}
+        StringBuilder sb = new StringBuilder();
+        for (String line : Files.readAllLines(Paths.get(path), StandardCharsets.UTF_8)) {
+            sb.append(line);
+        }
+        return sb.toString();
+    }
 
     public static void getGroup(ExtMap context) {
         context.put(
