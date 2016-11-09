@@ -82,7 +82,7 @@ public class AuthzExtension implements Extension {
         } catch (Throwable e) {
             LOG.error(
                 "Unexpected Exception invoking: {}",
-                input.get(Base.InvokeKeys.COMMAND)
+                input.<ExtUUID>get(Base.InvokeKeys.COMMAND)
             );
             LOG.debug(
                 "Exception:",

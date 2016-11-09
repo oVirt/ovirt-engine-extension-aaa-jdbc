@@ -1115,13 +1115,13 @@ public class Schema {
             cond =
                 Formatter.format(
                     "id = {}",
-                    input.get(UserIdentifiers.USER_ID)
+                    input.<Integer>get(UserIdentifiers.USER_ID)
                 );
         } else if (input.get(UserIdentifiers.USERNAME) != null) {
             cond =
                 Formatter.format(
                     "name = {}",
-                    Formatter.escapeString(input.get(UserIdentifiers.USERNAME, String.class))
+                    Formatter.escapeString(input.<String>get(UserIdentifiers.USERNAME, String.class))
                 );
         } else {
             throw new RuntimeException("No user Identifier provided");

@@ -42,7 +42,7 @@ public abstract class Command {
     public void invoke(ExtMap context) {
         if (entityNameExpected()) { // e.g user add 'mike'
             putNextPositional(context);
-            LOG.trace("entity name is: {}", context.get(ContextKeys.POSITIONAL));
+            LOG.trace("entity name is: {}", context.<String>get(ContextKeys.POSITIONAL));
         }
         Map<String, Object> args = null;
 

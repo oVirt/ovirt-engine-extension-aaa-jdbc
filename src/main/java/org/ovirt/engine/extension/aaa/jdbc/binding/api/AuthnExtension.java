@@ -27,6 +27,7 @@ import javax.sql.DataSource;
 
 import org.ovirt.engine.api.extensions.Base;
 import org.ovirt.engine.api.extensions.ExtMap;
+import org.ovirt.engine.api.extensions.ExtUUID;
 import org.ovirt.engine.api.extensions.Extension;
 import org.ovirt.engine.api.extensions.aaa.Authn;
 import org.ovirt.engine.extension.aaa.jdbc.binding.Config;
@@ -68,7 +69,7 @@ public class AuthnExtension implements Extension {
         } catch (Throwable e) {
             LOG.error(
                 "Unexpected Exception invoking: {}",
-                input.get(Base.InvokeKeys.COMMAND)
+                input.<ExtUUID>get(Base.InvokeKeys.COMMAND)
             );
             LOG.debug(
                 "Exception:",
