@@ -6,7 +6,7 @@
 	%{nil}
 Name:		@PACKAGE_NAME@
 Version:	@RPM_VERSION@
-Release:	@RPM_RELEASE@%{?release_suffix}%{?dist}
+Release:	@RPM_RELEASE@%{?dist}
 License:	ASL 2.0
 Summary:	oVirt Engine Local Users Extension
 Group:		Virtualization/Management
@@ -64,6 +64,10 @@ make %{make_common_opts} install-no-build DESTDIR="%{buildroot}"
 %{_bindir}/ovirt-aaa-jdbc-tool
 
 %changelog
+* Fri Nov 18 2016 Martin Perina <mperina@redhat.com> 1.1.2-1
+- Fixed bug 1391154
+- Newly required OpenJDK 1.8 to support new langiage features
+
 * Tue Oct 11 2016 Martin Perina <mperina@redhat.com> 1.1.1-1
 - Fixed bug 1373111
 - Fixed wrong return state when add group failed after group was added to db
