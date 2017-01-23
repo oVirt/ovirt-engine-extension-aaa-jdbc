@@ -216,7 +216,6 @@ public class Cli {
                 public void invoke(ExtMap context, Map<String, Object> args) {
                     context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.INSERT);
                     putUserAddKeys(context, args);
-                    String name = context.get(ContextKeys.POSITIONAL);
                     if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
                         commands.get("_schema-modify").invoke(context);
                     }
@@ -267,8 +266,9 @@ public class Cli {
                 public void invoke(ExtMap context, Map<String, Object> args) {
                     if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
                         context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.DELETE);
-                        context.put(Schema.InvokeKeys.ENTITY_KEYS, new ExtMap().mput(Schema.UserIdentifiers.USERNAME,
-                                                                                     context.get(ContextKeys.POSITIONAL)
+                        context.put(Schema.InvokeKeys.ENTITY_KEYS, new ExtMap().mput(
+                            Schema.UserIdentifiers.USERNAME,
+                            context.<String>get(ContextKeys.POSITIONAL)
                         ));
 
                     }
@@ -296,8 +296,10 @@ public class Cli {
                         context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.UPDATE);
                         context.put(
                             Schema.InvokeKeys.ENTITY_KEYS,
-                            new ExtMap().mput(Schema.UserIdentifiers.USERNAME, context.get(ContextKeys.POSITIONAL))
-                                .mput(Schema.UserKeys.UNLOCK_TIME, System.currentTimeMillis())
+                            new ExtMap().mput(
+                                Schema.UserIdentifiers.USERNAME,
+                                context.<String>get(ContextKeys.POSITIONAL)
+                            ).mput(Schema.UserKeys.UNLOCK_TIME, System.currentTimeMillis())
                         );
                         commands.get("_schema-modify").invoke(context);
                         context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
@@ -339,7 +341,7 @@ public class Cli {
                             if (user == null) {
                                 context.put(ContextKeys.EXIT_STATUS, NOT_FOUND);
                                 addContextMessage(context, true, Formatter.format("user {} not found",
-                                    context.get(ContextKeys.POSITIONAL)
+                                    context.<String>get(ContextKeys.POSITIONAL)
                                 ));
                             }
                         }
@@ -432,12 +434,12 @@ public class Cli {
 
                     commands.get("_search").invoke(context);
                     if (
-                        context.get(ContextKeys.SEARCH_RESULT) == null ||
+                        context.get(ContextKeys.SEARCH_RESULT, Collection.class) == null ||
                         context.get(ContextKeys.SEARCH_RESULT, Collection.class).size() == 0
                     ) {
                         addContextMessage(context, true, Formatter.format(
                             "user {} not found",
-                            context.get(ContextKeys.POSITIONAL)
+                            context.<String>get(ContextKeys.POSITIONAL)
                         ));
                         context.put(ContextKeys.EXIT_STATUS, NOT_FOUND);
                     }
@@ -528,7 +530,7 @@ public class Cli {
                     context.put(Schema.InvokeKeys.ENTITY_KEYS,
                                 new ExtMap().mput(
                                     Schema.GroupIdentifiers.NAME,
-                                    context.get(ContextKeys.POSITIONAL)
+                                    context.<String>get(ContextKeys.POSITIONAL)
                                 )
                     );
                     commands.get("_schema-modify").invoke(context);
@@ -586,7 +588,7 @@ public class Cli {
                     .mput(
                         Schema.InvokeKeys.ENTITY_KEYS,
                         new ExtMap().mput(Schema.UserIdentifiers.USERNAME, args.get("user"))
-                            .mput(Schema.SharedKeys.ADD_GROUP, context.get(ContextKeys.POSITIONAL))
+                            .mput(Schema.SharedKeys.ADD_GROUP, context.<String>get(ContextKeys.POSITIONAL))
                     );
                     commands.get("_schema-modify").invoke(context);
                     context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
@@ -608,7 +610,7 @@ public class Cli {
                         .mput(
                             Schema.InvokeKeys.ENTITY_KEYS,
                             new ExtMap().mput(Schema.UserIdentifiers.USERNAME, args.get("user"))
-                                .mput(Schema.SharedKeys.REMOVE_GROUP, context.get(ContextKeys.POSITIONAL))
+                                .mput(Schema.SharedKeys.REMOVE_GROUP, context.<String>get(ContextKeys.POSITIONAL))
                         );
                     commands.get("_schema-modify").invoke(context);
                     context.putIfAbsent(ContextKeys.EXIT_STATUS, SUCCESS);
@@ -631,7 +633,7 @@ public class Cli {
                         .mput(
                             Schema.InvokeKeys.ENTITY_KEYS,
                             new ExtMap().mput(Schema.GroupIdentifiers.NAME, args.get("group"))
-                                .mput(Schema.SharedKeys.ADD_GROUP, context.get(ContextKeys.POSITIONAL))
+                                .mput(Schema.SharedKeys.ADD_GROUP, context.<String>get(ContextKeys.POSITIONAL))
                         );
 
                     commands.get("_schema-modify")
@@ -655,7 +657,7 @@ public class Cli {
                         .mput(
                             Schema.InvokeKeys.ENTITY_KEYS,
                             new ExtMap().mput(Schema.GroupIdentifiers.NAME, args.get("group"))
-                                .mput(Schema.SharedKeys.REMOVE_GROUP, context.get(ContextKeys.POSITIONAL))
+                                .mput(Schema.SharedKeys.REMOVE_GROUP, context.<String>get(ContextKeys.POSITIONAL))
                         );
                     commands.get("_schema-modify")
                         .invoke(context);
@@ -846,8 +848,8 @@ public class Cli {
                                 "{}ing {} {}...\n",
                                 modName,
                                 ENTITY_NAMES.get(context.get(Schema.InvokeKeys.ENTITY, ExtUUID.class)),
-                                context.get(ContextKeys.POSITIONAL) != null ? // settings have no name
-                                context.get(ContextKeys.POSITIONAL) :
+                                context.<String>get(ContextKeys.POSITIONAL) != null ? // settings have no name
+                                context.<String>get(ContextKeys.POSITIONAL) :
                                 ""
                             ));
                         ExtMap modification =
@@ -934,7 +936,7 @@ public class Cli {
                     Properties templates = loadPropertiesFromJar("entity-templates.properties");
                     String providedTemplate = null;
                     if (context.containsKey(ContextKeys.SHOW_TEMPLATE)) {
-                        providedTemplate = templates.get(context.get(ContextKeys.SHOW_TEMPLATE)).toString();
+                        providedTemplate = templates.get(context.<String>get(ContextKeys.SHOW_TEMPLATE)).toString();
                     }
 
                     @SuppressWarnings("unchecked")
@@ -1085,10 +1087,10 @@ public class Cli {
             keys.putAll(INSERT_DEFAULTS);
             keys.mput(
                 Schema.UserIdentifiers.USERNAME,
-                context.get(ContextKeys.POSITIONAL)
+                context.<String>get(ContextKeys.POSITIONAL)
             ).mput(
                 Schema.UserKeys.NEW_USERNAME,
-                context.get(ContextKeys.POSITIONAL)
+                context.<String>get(ContextKeys.POSITIONAL)
             ).mput(
                 Schema.UserKeys.PASSWORD,
                 ""
@@ -1145,7 +1147,7 @@ public class Cli {
         try {
             keys.mput(
                 Schema.UserIdentifiers.USERNAME,
-                context.get(ContextKeys.POSITIONAL)
+                context.<String>get(ContextKeys.POSITIONAL)
             ).mput(
                 Schema.UserKeys.NEW_USERNAME,
                 args.get("new-name")
@@ -1257,7 +1259,7 @@ public class Cli {
                     break;
             }
 
-            userParams.mput(Schema.UserIdentifiers.USERNAME, context.get(ContextKeys.POSITIONAL))
+            userParams.mput(Schema.UserIdentifiers.USERNAME, context.<String>get(ContextKeys.POSITIONAL))
             .mput(Schema.UserKeys.PASSWORD, password)
             .mput(
                 Schema.UserKeys.PASSWORD_VALID_TO,
@@ -1341,12 +1343,12 @@ public class Cli {
 
         commands.get("_search").invoke(context);
         if (
-            context.get(ContextKeys.SEARCH_RESULT) == null ||
+            context.get(ContextKeys.SEARCH_RESULT, Collection.class) == null ||
             context.get(ContextKeys.SEARCH_RESULT, Collection.class).size() == 0
         ) {
             addContextMessage(context, true, Formatter.format(
                 "group {} not found",
-                context.get(ContextKeys.POSITIONAL)
+                context.<String>get(ContextKeys.POSITIONAL)
             ));
             context.put(ContextKeys.EXIT_STATUS, NOT_FOUND);
         }
