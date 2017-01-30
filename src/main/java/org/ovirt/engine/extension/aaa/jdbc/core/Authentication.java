@@ -141,7 +141,7 @@ public class Authentication implements Observer {
                     )
                 )
             ) {
-                AuthResponse credChangeResponse = checkCredChange(response.user, newCredentials);
+                AuthResponse credChangeResponse = checkCredChange(response.user, credentials, newCredentials);
                 if (credChangeResponse.result == Authn.AuthResult.SUCCESS) {
                     updateUser(
                         new ExtMap().mput(Schema.UserIdentifiers.USER_ID, response.user.getId())
@@ -424,6 +424,24 @@ public class Authentication implements Observer {
         }
         Collections.sort(timeConstraints);
         return timeConstraints.get(0);
+    }
+
+    public AuthResponse checkCredChange(
+        Schema.User user,
+        String credentials,
+        String newCredentials
+    ) throws GeneralSecurityException, IOException {
+        if (
+            !user.isNopasswd() && !EnvelopePBE.check(user.getPassword(), credentials)
+        ) {
+            return AuthResponse.negative(
+                Authn.AuthResult.CREDENTIALS_INCORRECT,
+                user,
+                "credentials incorrect"
+            );
+        }
+
+        return checkCredChange(user, newCredentials);
     }
 
     public AuthResponse checkCredChange(
