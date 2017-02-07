@@ -10,3 +10,6 @@ ovirt-engine-extension-aaa-jdbc.spec
 *.iml
 .idea
 
+.bash_history
+exported-artifacts
+mocker*.cfg
