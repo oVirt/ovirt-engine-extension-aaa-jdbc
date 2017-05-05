@@ -322,6 +322,7 @@ public class Cli {
                         String newPass = null;
                         boolean nopass = false;
                         boolean forcePassword = false;
+                        boolean encryptedPassword = false;
                         context.put(Schema.InvokeKeys.MODIFICATION_TYPE, Sql.ModificationTypes.UPDATE);
                         putUserResetPassParams(context, args);
                         if (!context.containsKey(ContextKeys.EXIT_STATUS)) {
@@ -333,6 +334,7 @@ public class Cli {
                                 .get(Schema.UserKeys.NOPASS, Boolean.class, false);
                             forcePassword = context.get(Schema.InvokeKeys.ENTITY_KEYS, ExtMap.class)
                                 .get(Schema.UserKeys.FORCE_PASSWORD);
+                            encryptedPassword = (Boolean) args.get("encrypted");
                         }
                         Schema.User user = null;
                         if (!context.containsKey(ContextKeys.EXIT_STATUS)) { // need to fetch user for pass history
@@ -347,7 +349,8 @@ public class Cli {
                         }
                         if (!context.containsKey(ContextKeys.EXIT_STATUS) &&
                             !nopass &&
-                            !forcePassword
+                            !forcePassword &&
+                            !encryptedPassword
                         ) {
                             // test pass history & complexity
                             Authentication authentication =
@@ -373,8 +376,8 @@ public class Cli {
                             context.get(Schema.InvokeKeys.ENTITY_KEYS, ExtMap.class)
                             .mput(
                                 Schema.UserKeys.PASSWORD,
-                                newPass == null ?
-                                null :
+                                (newPass == null || encryptedPassword) ?
+                                newPass :
                                 EnvelopePBE.encode(
                                     settings.get(Schema.Settings.PBE_ALGORITHM, String.class),
                                     settings.get(Schema.Settings.PBE_KEY_SIZE, Integer.class),
