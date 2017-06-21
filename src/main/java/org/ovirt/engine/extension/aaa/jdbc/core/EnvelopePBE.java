@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,8 +13,11 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EnvelopePBE {
 
@@ -27,11 +31,14 @@ public class EnvelopePBE {
     private static final String ARTIFACT = "EnvelopePBE";
     private static final String VERSION = "1";
 
+    private static final Logger LOG = LoggerFactory.getLogger(EnvelopePBE.class);
+
     public static boolean check(String blob, String password) throws IOException, GeneralSecurityException {
-        final Map<String, String> map = new ObjectMapper().readValue(
-            Base64.decodeBase64(blob),
-            TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, String.class)
-        );
+        final Map<String, String> map = getEncryptionMap(blob);
+        if (map.isEmpty()) {
+            LOG.warn("Invalid format of previous password. Cannot check equality of previous and new password.");
+            return false;
+        }
 
         if (!ARTIFACT.equals(map.get(ARTIFACT_KEY))) {
             throw new IllegalArgumentException(String.format("Invalid artifact '%s'", map.get(ARTIFACT_KEY)));
@@ -80,5 +87,22 @@ public class EnvelopePBE {
             )
         );
         return base64.encodeToString(new ObjectMapper().writeValueAsString(map).getBytes(Charset.forName("UTF-8")));
+    }
+
+    public static boolean isFormatCorrect(String blob) throws IOException {
+        final Map<String, String> map = getEncryptionMap(blob);
+        return ARTIFACT.equals(map.get(ARTIFACT_KEY)) && VERSION.equals(map.get(VERSION_KEY));
+    }
+
+    private static Map<String, String> getEncryptionMap(String blob) throws IOException {
+        Map<String, String> map;
+        try {
+            map = new ObjectMapper().readValue(
+                    Base64.decodeBase64(blob),
+                    TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, String.class));
+        } catch (JsonParseException e) { // password in db wasn't correctly encrypted
+            map = Collections.emptyMap();
+        }
+        return map;
     }
 }

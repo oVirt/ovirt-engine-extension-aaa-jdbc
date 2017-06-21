@@ -347,6 +347,10 @@ public class Cli {
                                 ));
                             }
                         }
+                        if (encryptedPassword && !EnvelopePBE.isFormatCorrect(newPass)){
+                            context.put(ContextKeys.EXIT_STATUS, GENERAL_ERROR);
+                            addContextMessage(context, true, "Password is not correctly encrypted.");
+                        }
                         if (!context.containsKey(ContextKeys.EXIT_STATUS) &&
                             !nopass &&
                             !forcePassword &&
