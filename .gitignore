@@ -9,6 +9,8 @@ ovirt-engine-extension-aaa-jdbc.spec
 
 *.iml
 .idea
+.classpath
+.project
 
 .bash_history
 exported-artifacts
