@@ -6,7 +6,7 @@
 	%{nil}
 Name:		@PACKAGE_NAME@
 Version:	@RPM_VERSION@
-Release:	@RPM_RELEASE@%{?release_suffix}%{?dist}
+Release:	@RPM_RELEASE@%{?dist}
 License:	ASL 2.0
 Summary:	oVirt Engine Local Users Extension
 Group:		Virtualization/Management
@@ -64,6 +64,10 @@ make %{make_common_opts} install-no-build DESTDIR="%{buildroot}"
 %{_bindir}/ovirt-aaa-jdbc-tool
 
 %changelog
+* Wed Feb 14 2018 Martin Perina <mperina@redhat.com> 1.1.7-1
+- Add missing indexes
+- Use NativePRNG instead of SHA1PRNG
+
 * Wed Jul 12 2017 Martin Perina <mperina@redhat.com> 1.1.6-1
 - Contains fix for last minute issue found when verifying bug 1389673
 
