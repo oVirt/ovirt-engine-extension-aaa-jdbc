@@ -6,7 +6,7 @@
 	%{nil}
 Name:		@PACKAGE_NAME@
 Version:	@RPM_VERSION@
-Release:	@RPM_RELEASE@%{?release_suffix}%{?dist}
+Release:	@RPM_RELEASE@%{?dist}
 License:	ASL 2.0
 Summary:	oVirt Engine Local Users Extension
 Group:		Virtualization/Management
@@ -64,6 +64,9 @@ make %{make_common_opts} install-no-build DESTDIR="%{buildroot}"
 %{_bindir}/ovirt-aaa-jdbc-tool
 
 %changelog
+* Fri Nov 23 2018 Martin Perina <mperina@redhat.com> 1.1.8-1
+- Fix Fedora build issues
+
 * Wed Feb 14 2018 Martin Perina <mperina@redhat.com> 1.1.7-1
 - Add missing indexes
 - Use NativePRNG instead of SHA1PRNG
