@@ -18,3 +18,4 @@ rc=$?
 result=$([[ ${rc} == 0 ]] && echo -n "successfully." || echo -n "with failure.")
 params="$(echo "$@" | sed 's/password=pass\:[^[:space:]]*/password=pass\:*** /g')"
 logger "User '${USER}' executed '$0 ${params}' ${result}"
+exit ${rc}
