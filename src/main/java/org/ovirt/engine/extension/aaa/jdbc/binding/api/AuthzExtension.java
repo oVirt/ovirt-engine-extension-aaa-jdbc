@@ -238,9 +238,9 @@ public class AuthzExtension implements Extension {
 
             if (
                 opCode == QueryFilterOperator.EQ &&
-                val.endsWith("*")
+                val.indexOf('*') >= 0
             ) {
-                val = val.substring(0, val.length() - 1).concat("%");
+                val=val.replace('*', '%');
                 opCode = Schema.AuthzInternal.LIKE;
             }
             sb.append(

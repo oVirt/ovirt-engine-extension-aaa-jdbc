@@ -771,9 +771,7 @@ public class Cli {
                     StringBuilder filter = new StringBuilder("true AND ");
                     for (String filterPattern : filterPatterns) {
                         String val = filterPattern.split("=", 2)[1];
-                        if (val.endsWith("*")) {
-                            val = val.substring(0, val.length() - 1).concat("%");
-                        }
+                        val=val.replace('*', '%');
                         filter.append(
                             Schema.SEARCH_KEYS.get(
                                 cliNameToApiKey.get(
