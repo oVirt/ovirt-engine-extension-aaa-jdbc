@@ -3,6 +3,7 @@
 . "$(dirname "$(readlink -f "$0")")"/../../ovirt-engine/bin/engine-prolog.sh
 
 "${JAVA_HOME}/bin/java" \
+	--add-modules java.se \
 	-Djava.security.auth.login.config="${ENGINE_USR}/conf/jaas.conf" \
 	-Djava.util.logging.config.file="${OVIRT_LOGGING_PROPERTIES}" \
 	-Djboss.modules.write-indexes=false \
