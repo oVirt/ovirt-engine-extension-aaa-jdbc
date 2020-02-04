@@ -1,0 +1,4 @@
+distros:
+  - el7
+release_branches:
+  ovirt-engine-extension-aaa-jdbc-1.1: ovirt-4.3
