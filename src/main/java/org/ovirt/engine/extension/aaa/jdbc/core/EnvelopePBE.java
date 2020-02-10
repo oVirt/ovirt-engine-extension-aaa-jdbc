@@ -12,10 +12,9 @@ import java.util.Map;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,8 +98,8 @@ public class EnvelopePBE {
         try {
             map = new ObjectMapper().readValue(
                     Base64.decodeBase64(blob),
-                    TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, String.class));
-        } catch (JsonParseException e) { // password in db wasn't correctly encrypted
+                    new TypeReference<HashMap<String, String>>() {});
+        } catch (IOException e) { // password in db wasn't correctly encrypted
             map = Collections.emptyMap();
         }
         return map;

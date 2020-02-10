@@ -15,8 +15,8 @@
 
 	<property name="jar.commons-codec" value="${lib}/commons-codec.jar"/>
 	<property name="jar.commons-lang" value="${lib}/commons-lang.jar"/>
-	<property name="jar.jackson-core-asl" value="${lib}/jackson-core-asl.jar"/>
-	<property name="jar.jackson-mapper-asl" value="${lib}/jackson-mapper-asl.jar"/>
+	<property name="jar.jackson-core" value="${lib}/jackson-core.jar"/>
+	<property name="jar.jackson-databind" value="${lib}/jackson-databind.jar"/>
 	<property name="jar.ovirt-engine-extensions-api" value="${lib}/ovirt-engine-extensions-api.jar"/>
 	<property name="jar.jdbc" value="${lib}/postgresql-jdbc.jar"/>
 	<property name="jar.slf4j-api" value="${lib}/slf4j-api.jar"/>
@@ -38,8 +38,8 @@
 	<path id="classpath.buildtime">
 		<pathelement path="${jar.commons-codec}"/>
 		<pathelement path="${jar.commons-lang}"/>
-		<pathelement path="${jar.jackson-core-asl}"/>
-		<pathelement path="${jar.jackson-mapper-asl}"/>
+		<pathelement path="${jar.jackson-core}"/>
+		<pathelement path="${jar.jackson-databind}"/>
 		<pathelement path="${jar.ovirt-engine-extensions-api}"/>
 		<pathelement path="${jar.slf4j-api}"/>
 	</path>
