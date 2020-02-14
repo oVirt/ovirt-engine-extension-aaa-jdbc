@@ -1,4 +1,6 @@
 distros:
+  - el8
   - fc30
+  - fcraw
 release_branches:
   master: ovirt-master

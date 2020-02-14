@@ -2,7 +2,6 @@ lib/
 target/
 output/
 
-build.properties
 ovirt-engine-extension-aaa-jdbc.spec
 
 *.tar.gz
@@ -12,6 +11,3 @@ ovirt-engine-extension-aaa-jdbc.spec
 .classpath
 .project
 
-.bash_history
-exported-artifacts
-mocker*.cfg

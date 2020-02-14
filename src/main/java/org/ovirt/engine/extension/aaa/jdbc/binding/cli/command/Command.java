@@ -34,7 +34,7 @@ public abstract class Command {
      * This method is responsible for:
      * - parsing preceding positional argument expected before the keyword arguments according to getPosCount().
      * - parsing keyword arguments according to getName()
-     * if getSubModules().size() > 1:
+     * if getSubModules().size() &gt; 1:
      * - parsing name of next expected command and invoking it
      */
     public abstract void invoke(ExtMap context, Map<String, Object> args);

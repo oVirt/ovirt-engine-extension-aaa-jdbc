@@ -4,30 +4,15 @@ BUILD
 
 Prerequisites
 
- - apache-commons-codec
- - apache-commons-lang
- - jackson
- - ovirt-engine-extensions-api-impl
- - postgresql-jdbc
- - slf4j
- - slf4j-log4j12
-
-Setup dependencies
-
-$ mkdir -p lib
-$ cp /usr/share/java/commons-codec.jar \
-	/usr/share/java/commons-lang.jar \
-        /usr/share/java/jackson/jackson-core-asl.jar \
-        /usr/share/java/jackson/jackson-mapper-asl.jar \
-	/usr/share/java/ovirt-engine/ovirt-engine-extensions-api.jar \
-	/usr/share/java/postgresql-jdbc.jar \
-	/usr/share/java/slf4j/slf4j-api.jar \
-	/usr/share/java/slf4j/slf4j-jdk14.jar \
-	lib
+ - maven
+ - OpenJDK 11
 
 Build and Install into devenv
 
 $ make clean install PREFIX="$HOME/ovirt-engine"
+
+You need to run engine-setup to properly configure aaa-jdbc extension within
+you development environment prefix.
 
 DATABASE [postgresql]
 

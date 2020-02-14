@@ -1,7 +1,10 @@
-ant
-git
-java-1.8.0-openjdk-devel
-jpackage-utils
-ovirt-engine-extensions-api
-unboundid-ldapsdk
+apache-commons-lang
 dnf-utils
+git
+jackson-core
+jackson-databind
+java-11-openjdk-devel
+maven
+maven-local
+ovirt-engine-extensions-api
+sed
