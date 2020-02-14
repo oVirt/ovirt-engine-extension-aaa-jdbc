@@ -77,6 +77,11 @@ make %{make_common_opts} install
 
 
 %changelog
+* Fri Feb 14 2020 Martin Perina <mperina@redhat.com> 1.2.0-1
+- Use maven to build the project
+- Use OpenJDK 11 to build the project
+- Use ovirt-engine-extensions-api >= 1.0.1
+
 * Fri Nov 22 2019 Martin Perina <mperina@redhat.com> 1.1.90-1
 - Fixed bug 1714633
 - Allow aaa-jdbc-tool to be executed with OpenJDK 11

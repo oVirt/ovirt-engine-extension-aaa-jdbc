@@ -11,7 +11,7 @@
 
   <groupId>org.ovirt.engine</groupId>
   <artifactId>ovirt-engine-extension-aaa-jdbc</artifactId>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.2.0</version>
 
   <name>oVirt Engine Local Users Management Extension</name>
   <description>
@@ -47,7 +47,7 @@
     <connection>scm:git:git://gerrit.ovirt.org/ovirt-engine-extension-aaa-jdbc.git</connection>
     <developerConnection>scm:git:git://gerrit.ovirt.org/ovirt-engine-extension-aaa-jdbc.git</developerConnection>
     <url>git://gerrit.ovirt.org/ovirt-engine-extensions-api.git</url>
-    <tag>HEAD</tag>
+    <tag>ovirt-engine-extension-aaa-jdbc-1.2.0</tag>
   </scm>
 
   <properties>
