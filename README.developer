@@ -9,7 +9,7 @@ Prerequisites
 
 Build and Install into devenv
 
-$ make clean install PREFIX="$HOME/ovirt-engine"
+$ make clean install-dev PREFIX="$HOME/ovirt-engine"
 
 You need to run engine-setup to properly configure aaa-jdbc extension within
 you development environment prefix.
