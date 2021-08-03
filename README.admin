@@ -9,6 +9,8 @@ It's also possible to configure additional profiles provided by aaa-jdbc, but
 configuration and upgrade of these profiles have to be done manually (see
 below).
 
+This README is guide to setup PostgreSQL for ovirt-engine-aaa-jdbc extension.
+In order to setup the tool into development environment, follow README.developer
 
 
 II. Configuration of 'internal' aaa-jdbc profile

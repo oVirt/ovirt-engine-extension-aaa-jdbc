@@ -6,18 +6,18 @@ Prerequisites
 
  - maven
  - OpenJDK 11
+ - Ovirt-engine development environment
 
-Build and Install into devenv
+To build and install the tool into your ovirt-engine deployment environment:
+
+From the root of this project run:
 
 $ make clean install-dev PREFIX="$HOME/ovirt-engine"
 
+PREFIX is the path of your ovirt-engine deployment
+
 You need to run engine-setup to properly configure aaa-jdbc extension within
-you development environment prefix.
-
-DATABASE [postgresql]
-
-Please take a look at README.admin how to setup PostgreSQL for
-ovirt-engine-aaa-jdbc extension.
+your development environment.
 
 TESTS
 
