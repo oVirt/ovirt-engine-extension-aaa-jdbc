@@ -1,5 +1,7 @@
 # oVirt Engine extension - AAA - JDBC
 
+[![Copr build status](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/ovirt-engine-extension-aaa-jdbc/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/ovirt-engine-extension-aaa-jdbc/)
+
 Welcome to the oVirt Engine extension - AAA - JDBC source repository.
 This package contains the oVirt Engine Local Users Management Extension to manage users stored in PostgreSQL database.
 
