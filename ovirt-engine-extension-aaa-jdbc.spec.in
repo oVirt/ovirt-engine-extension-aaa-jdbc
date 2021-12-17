@@ -24,6 +24,7 @@ BuildArch:	noarch
 
 BuildRequires:	java-11-openjdk-devel
 BuildRequires:	maven-local
+BuildRequires:	make
 BuildRequires:	mvn(org.apache.maven.plugins:maven-compiler-plugin)
 BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
 
@@ -59,7 +60,7 @@ to manage users stored in PostgreSQL database.
 # Necessary to override the default for xmvn, which is JDK 8
 export JAVA_HOME="/usr/lib/jvm/java-11-openjdk"
 
-%mvn_build -j
+%mvn_build -j -f
 
 
 %install
