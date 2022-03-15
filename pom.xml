@@ -44,9 +44,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://gerrit.ovirt.org/ovirt-engine-extension-aaa-jdbc.git</connection>
-    <developerConnection>scm:git:git://gerrit.ovirt.org/ovirt-engine-extension-aaa-jdbc.git</developerConnection>
-    <url>git://gerrit.ovirt.org/ovirt-engine-extensions-api.git</url>
+    <url>https://github.com/oVirt/ovirt-engine-extension-aaa-jdbc</url>
+    <connection>scm:git:https://github.com/oVirt/ovirt-engine-extension-aaa-jdbc.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:oVirt/ovirt-engine-extension-aaa-jdbc.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
