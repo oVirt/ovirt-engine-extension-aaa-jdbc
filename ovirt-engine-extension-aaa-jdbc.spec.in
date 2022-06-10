@@ -33,7 +33,6 @@ BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-core)
 BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-databind)
 BuildRequires:	mvn(org.apache.commons:commons-lang)
 BuildRequires:	mvn(org.ovirt.engine.api:ovirt-engine-extensions-api)
-BuildRequires:	mvn(org.slf4j:slf4j-api)
 BuildRequires:	mvn(org.slf4j:slf4j-jdk14)
 
 Requires:	java-11-openjdk-headless >= 1:11.0.0
@@ -43,7 +42,6 @@ Requires:	apache-commons-lang
 Requires:	jackson-core
 Requires:	jackson-databind
 Requires:	ovirt-engine-extensions-api
-Requires:	slf4j
 Requires:	slf4j-jdk14
 
 
