@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.ovirt.engine.api.extensions.ExtKey;
 import org.ovirt.engine.api.extensions.ExtMap;
 import org.ovirt.engine.extension.aaa.jdbc.DateUtils;

@@ -26,14 +26,14 @@ BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
 BuildRequires:	mvn(commons-codec:commons-codec)
 BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-core)
 BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-databind)
-BuildRequires:	mvn(org.apache.commons:commons-lang)
+BuildRequires:	mvn(org.apache.commons:commons-lang3)
 BuildRequires:	mvn(org.ovirt.engine.api:ovirt-engine-extensions-api)
 BuildRequires:	mvn(org.slf4j:slf4j-jdk14)
 
 Requires:	(java-11-openjdk-headless or java-21-openjdk-headless)
 Requires:	javapackages-filesystem
 Requires:	apache-commons-codec
-Requires:	apache-commons-lang
+Requires:	apache-commons-lang3
 Requires:	jackson-core
 Requires:	jackson-databind
 Requires:	ovirt-engine-extensions-api
