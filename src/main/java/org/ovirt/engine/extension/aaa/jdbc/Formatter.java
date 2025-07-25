@@ -17,7 +17,7 @@
 
 package org.ovirt.engine.extension.aaa.jdbc;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 public class Formatter {
