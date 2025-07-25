@@ -15,15 +15,10 @@ License:	ASL 2.0
 URL:		http://www.ovirt.org
 Source0:	%{name}-%{version}.tar.gz
 
-# We need to disable automatic generation of "Requires: java-headless >= 1:11"
-# by xmvn, becase JDK 11 doesn't provide java-headless artifact, but it
-# provides java-11-headless.
-AutoReq:	no
-
 BuildArch:	noarch
 
-BuildRequires:	java-11-openjdk-devel
-BuildRequires:	maven-local
+BuildRequires:	java-21-openjdk-devel
+BuildRequires:	maven-local-openjdk21
 BuildRequires:	make
 BuildRequires:	mvn(org.apache.maven.plugins:maven-compiler-plugin)
 BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
@@ -35,10 +30,7 @@ BuildRequires:	mvn(org.apache.commons:commons-lang)
 BuildRequires:	mvn(org.ovirt.engine.api:ovirt-engine-extensions-api)
 BuildRequires:	mvn(org.slf4j:slf4j-jdk14)
 
-# Required because of old xmvn version in COPR
-BuildRequires: maven
-
-Requires:	java-11-openjdk-headless >= 1:11.0.0
+Requires:	(java-11-openjdk-headless or java-21-openjdk-headless)
 Requires:	javapackages-filesystem
 Requires:	apache-commons-codec
 Requires:	apache-commons-lang
@@ -58,8 +50,6 @@ to manage users stored in PostgreSQL database.
 
 
 %build
-# Necessary to override the default for xmvn, which is JDK 8
-export JAVA_HOME="/usr/lib/jvm/java-11-openjdk"
 
 %mvn_build -j -f
 
