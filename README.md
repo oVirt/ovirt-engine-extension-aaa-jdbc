@@ -1,7 +1,5 @@
 # oVirt Engine extension - AAA - JDBC
 
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/ovirt-engine-extension-aaa-jdbc/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/ovirt-engine-extension-aaa-jdbc/)
-
 Welcome to the oVirt Engine extension - AAA - JDBC source repository.
 This repository is hosted on [GitHub:ovirt-engine-extension-aaa-jdbc](https://github.com/oVirt/ovirt-engine-extension-aaa-jdbc)
 
